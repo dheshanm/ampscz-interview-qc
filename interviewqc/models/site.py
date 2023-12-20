@@ -1,7 +1,31 @@
+#!/usr/bin/env python
+
+import sys
+from pathlib import Path
+from typing import List
+
+file = Path(__file__).resolve()
+parent = file.parent
+root = None
+for parent in file.parents:
+    if parent.name == "ampscz-interview-qc":
+        root = parent
+sys.path.append(str(root))
+
+# remove current directory from path
+try:
+    sys.path.remove(str(parent))
+except ValueError:
+    pass
+
+
+from interviewqc.helpers import db
+
+
 class Site:
     def __init__(self, site_id: str, site_name: str, country: str, network: str):
         self.site_id = site_id
-        self.site_name = site_name
+        self.site_name = db.santize_string(site_name)
         self.country = country
         self.network = network
 
