@@ -25,6 +25,7 @@ from interviewqc.helpers import db
 from interviewqc.models.file import File
 from interviewqc.models.site import Site
 from interviewqc.models.subject import Subject
+from interviewqc.models.interview import Interview
 from interviewqc.models.interview_raw import InterviewRaw
 
 
@@ -33,6 +34,7 @@ def init_db(config_file: Path):
         InterviewRaw.drop_table_query(),
         Subject.drop_table_query(),
         Site.drop_table_query(),
+        Interview.drop_table_query(),
         File.drop_table_query(),
     ]
 
@@ -40,6 +42,7 @@ def init_db(config_file: Path):
         File.init_table_query(),
         Site.init_table_query(),
         Subject.init_table_query(),
+        Interview.init_table_query(),
         InterviewRaw.init_table_query(),
     ]
 
