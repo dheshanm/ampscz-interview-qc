@@ -53,7 +53,7 @@ class File:
             file_type TEXT NOT NULL,
             file_size INT NOT NULL,
             file_path TEXT PRIMARY KEY,
-            m_time DATETIME NOT NULL,
+            m_time TIMESTAMP NOT NULL,
             md5 TEXT NOT NULL,
             PRIMARY KEY (file_path)
         );
