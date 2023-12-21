@@ -33,6 +33,8 @@ from interviewqc.models.interview_raw import InterviewRaw
 from interviewqc.models.file import File
 
 MODULE_NAME = "interviewqc_import_interview_files"
+
+# Parallel processing settings
 PARALLEL = True
 NUM_WORKERS = 4
 
@@ -49,6 +51,15 @@ logging.basicConfig(**logargs)
 
 
 def get_all_interview_paths(config_file: Path) -> List[Path]:
+    """
+    Retrieves a list of interview paths that have not been imported yet.
+
+    Args:
+        config_file (Path): The path to the configuration file.
+
+    Returns:
+        List[Path]: A list of interview paths that have not been imported yet.
+    """
     sql_query = """
     SELECT interview_path FROM interviews WHERE interview_path NOT IN (
         SELECT interview_path FROM interview_raw
@@ -66,6 +77,15 @@ def get_all_interview_paths(config_file: Path) -> List[Path]:
 
 
 def scan_all_files_for_interview(interview_path: Path) -> List[File]:
+    """
+    Scans all files in the given interview_path directory and returns a list of File objects.
+
+    Args:
+        interview_path (Path): The path to the directory containing the interview files.
+
+    Returns:
+        List[File]: A list of File objects representing the interview files found in the directory.
+    """
     interview_files: List[File] = []
 
     for root, dirs, files in os.walk(interview_path):
@@ -92,8 +112,16 @@ def scan_all_files_for_interview(interview_path: Path) -> List[File]:
 
 
 def process_interview_path(interview_path: Path, config_file: Path):
-    """Processes a single interview path in a separate process."""
+    """
+    Processes a single interview path in a separate process.
 
+    Args:
+        interview_path (Path): The path to the interview directory.
+        config_file (Path): The path to the configuration file.
+
+    Returns:
+        None
+    """
     files = scan_all_files_for_interview(interview_path=interview_path)
     sql_queries = [interview_file.to_sql() for interview_file in files]
 
@@ -112,10 +140,28 @@ def process_interview_path(interview_path: Path, config_file: Path):
 
 
 def wrapper_process_interview_path(args):
+    """
+    Wrapper function to process interview path.
+
+    Args:
+        args: A tuple of arguments to be passed to the process_interview_path function.
+
+    Returns:
+        The result of the process_interview_path function.
+    """
     return process_interview_path(*args)
 
 
 def scan_for_interview_files(config_file: Path):
+    """
+    Scans for interview files and processes them.
+
+    Args:
+        config_file (Path): The path to the configuration file.
+
+    Returns:
+        None
+    """
     global PARALLEL
     global NUM_WORKERS
 

@@ -49,6 +49,18 @@ INVALID_INTERVIEW_NAMES_COUNT = 0
 def get_interviews_from_dir(
     interviews_dir: Path, subject_id: str, interview_type: str
 ) -> List[Interview]:
+    """
+    Retrieves a list of Interview objects from the specified directory.
+
+    Args:
+        interviews_dir (Path): The directory containing the interviews.
+        subject_id (str): The ID of the subject.
+        interview_type (str): The type of the interview.
+
+    Returns:
+        List[Interview]: A list of Interview objects.
+
+    """
     interviews: List[Interview] = []
     global INVALID_INTERVIEW_NAMES_COUNT
 
@@ -88,6 +100,16 @@ def get_interviews_from_dir(
 
 
 def get_interviews_from_subject(subject_path: Path) -> List[Interview]:
+    """
+    Retrieves a list of interviews from the specified subject path.
+
+    Args:
+        subject_path (Path): The path to the subject directory.
+
+    Returns:
+        List[Interview]: A list of Interview objects.
+
+    """
     interview_path = subject_path / "interviews"
     subject_id = subject_path.name
 
@@ -111,6 +133,18 @@ def get_interviews_from_subject(subject_path: Path) -> List[Interview]:
 
 
 def get_interviews_from_site(site_path: Path) -> List[Interview]:
+    """
+    Retrieves a list of interviews from the specified site path.
+
+    Args:
+        site_path (Path): The path to the site directory.
+
+    Returns:
+        List[Interview]: A list of Interview objects.
+
+    Raises:
+        FileNotFoundError: If the subjects path does not exist.
+    """
     subjects_path = site_path / "raw"
     interviews: List[Interview] = []
 
@@ -127,6 +161,16 @@ def get_interviews_from_site(site_path: Path) -> List[Interview]:
 
 
 def get_all_interviews(config_file: Path, data_root: Path) -> None:
+    """
+    Retrieves all interviews from the specified data root directory and imports them into a database.
+
+    Args:
+        config_file (Path): The path to the configuration file.
+        data_root (Path): The root directory containing the interview data.
+
+    Returns:
+        None
+    """
     sites_path = data_root / "PROTECTED"
     interviews: List[Interview] = []
     global INVALID_INTERVIEW_NAMES_COUNT

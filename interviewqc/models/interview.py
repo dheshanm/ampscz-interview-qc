@@ -24,6 +24,18 @@ from interviewqc.helpers import db
 
 
 class Interview:
+    """
+    Represents an interview.
+
+    Args:
+        interview_path (Path): The path to the interview.
+        interview_name (str): The name of the interview.
+        interview_type (str): The type of the interview (open, psychs, etc.)
+        subject_id (str): The ID of the subject.
+        interview_date (Optional[datetime], optional): The date of the interview. Defaults to None.
+        valid_name (bool, optional): Indicates if the name is valid. Defaults to True.
+    """
+
     def __init__(
         self,
         interview_path: Path,

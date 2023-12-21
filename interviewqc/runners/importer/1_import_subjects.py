@@ -45,6 +45,16 @@ logging.basicConfig(**logargs)
 
 
 def get_subjects_from_metadata(metadata_file: Path) -> List[Subject]:
+    """
+    Retrieves a list of subjects from a metadata file.
+
+    Args:
+        metadata_file (Path): The path to the metadata file.
+
+    Returns:
+        List[Subject]: A list of Subject objects.
+
+    """
     subjects: List[Subject] = []
 
     metadata_df = pd.read_csv(metadata_file)
@@ -65,6 +75,16 @@ def get_subjects_from_metadata(metadata_file: Path) -> List[Subject]:
 
 
 def get_all_subjects(config_file: Path, data_root: Path):
+    """
+    Retrieves all subjects from the specified data root directory.
+
+    Args:
+        config_file (Path): The path to the configuration file.
+        data_root (Path): The root directory where the subject data is stored.
+
+    Returns:
+        None
+    """
     sites_path = data_root / "GENERAL"
     subjects: List[Subject] = []
 
