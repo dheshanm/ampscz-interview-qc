@@ -32,9 +32,9 @@ from interviewqc.models.interview_raw import InterviewRaw
 def init_db(config_file: Path):
     drop_queries: List[str] = [
         InterviewRaw.drop_table_query(),
+        Interview.drop_table_query(),
         Subject.drop_table_query(),
         Site.drop_table_query(),
-        Interview.drop_table_query(),
         File.drop_table_query(),
     ]
 

@@ -19,6 +19,7 @@ except ValueError:
 
 from datetime import datetime
 
+from interviewqc.helpers import db
 from interviewqc.helpers.hash import compute_hash
 
 
@@ -27,7 +28,7 @@ class File:
         self,
         file_name: str,
         file_type: str,
-        file_size: str,
+        file_size: float,
         file_path: Path,
         m_time: datetime,
     ):
@@ -48,10 +49,10 @@ class File:
     @staticmethod
     def init_table_query() -> str:
         sql_query = """
-        CREATE TABLE file (
+        CREATE TABLE files (
             file_name TEXT NOT NULL,
             file_type TEXT NOT NULL,
-            file_size INT NOT NULL,
+            file_size FLOAT NOT NULL,
             file_path TEXT PRIMARY KEY,
             m_time TIMESTAMP NOT NULL,
             md5 TEXT NOT NULL
@@ -63,17 +64,20 @@ class File:
     @staticmethod
     def drop_table_query() -> str:
         sql_query = """
-        DROP TABLE IF EXISTS file;
+        DROP TABLE IF EXISTS files;
         """
 
         return sql_query
 
     def to_sql(self):
+        f_name = db.santize_string(self.file_name)
+        f_path = db.santize_string(str(self.file_path))
+
         sql_query = f"""
-        INSERT INTO file (file_name, file_type, file_size,
+        INSERT INTO files (file_name, file_type, file_size,
             file_path, m_time, md5)
-        VALUES ('{self.file_name}', '{self.file_type}', '{self.file_size}',
-            '{self.file_path}', '{self.m_time}', '{self.md5}');
+        VALUES ('{f_name}', '{self.file_type}', '{self.file_size}',
+            '{f_path}', '{self.m_time}', '{self.md5}');
         """
 
         return sql_query
