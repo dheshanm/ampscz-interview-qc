@@ -99,10 +99,13 @@ def move_site(site_name: str, network: str, data_root: Path, backup_root: Path):
         raise FileNotFoundError(f"Site path {site_path} does not exist")
 
     subjects_dir = site_path.iterdir()
+    subjects_dir_list: List[Path] = [subject_dir for subject_dir in subjects_dir]
 
     with utils.get_progress_bar() as progress_bar:
-        task = progress_bar.add_task(f"Moving {site_name}", total=len(subjects_dir))
-        for subject_dir in progress_bar:
+        task = progress_bar.add_task(
+            f"Moving {site_name}", total=len(subjects_dir_list)
+        )
+        for subject_dir in subjects_dir_list:
             progress_bar.update(task, advance=1, description=subject_dir.name)
             move_subject(
                 subject_dir=subject_dir, data_root=data_root, backup_root=backup_root
