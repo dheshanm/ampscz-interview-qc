@@ -28,7 +28,6 @@ from concurrent.futures import ProcessPoolExecutor
 from rich.logging import RichHandler
 
 from interviewqc.helpers import utils, db
-from interviewqc.helpers.config import config
 from interviewqc.models.interview_raw import InterviewRaw
 from interviewqc.models.file import File
 
