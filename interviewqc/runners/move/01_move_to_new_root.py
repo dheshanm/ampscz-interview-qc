@@ -91,9 +91,11 @@ def move_subject(subject_dir: Path, data_root: Path, backup_root: Path):
 
 
 def move_site(site_name: str, network: str, data_root: Path, backup_root: Path):
+    logger.info(f"Moving site {site_name}")
     site_path = data_root / "PROTECTED" / f"{network}{site_name}" / "raw"
 
     if not site_path.exists():
+        logger.error(f"Site path {site_path} does not exist")
         raise FileNotFoundError(f"Site path {site_path} does not exist")
 
     subjects_dir = site_path.iterdir()
@@ -140,3 +142,13 @@ if __name__ == "__main__":
 
     sites = args.sites
     logger.info(f"Sites: {sites}")
+
+    for site in sites:
+        move_site(
+            site_name=site,
+            network=network,
+            data_root=data_root,
+            backup_root=backup_root,
+        )
+
+    logger.info("Done")
