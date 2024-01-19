@@ -109,8 +109,15 @@ def get_interviews_from_dir(
             else:
                 continue
 
+        days_sice_consent = compute_days_since_consent(
+            config_file=config_file,
+            interview_date=interview_date,
+            subject_id=subject_id,
+        )
+
         interview = Interview(
             interview_path=interview_dir,
+            days_since_consent=days_sice_consent,
             interview_name=interview_name,
             interview_type=interview_type,
             subject_id=subject_id,
