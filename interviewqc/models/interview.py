@@ -39,6 +39,7 @@ class Interview:
     def __init__(
         self,
         interview_path: Path,
+        days_since_consent: int,
         interview_name: str,
         interview_type: str,
         subject_id: str,
@@ -49,6 +50,7 @@ class Interview:
             raise FileNotFoundError(f"Interview path {interview_path} does not exist")
 
         self.interview_path = interview_path
+        self.days_since_consent = days_since_consent
         self.interview_name = interview_name
         self.interview_type = interview_type
         self.subject_id = subject_id
@@ -65,11 +67,12 @@ class Interview:
     def init_table_query() -> str:
         sql_query = """
         CREATE TABLE interviews (
+            subject_id TEXT NOT NULL REFERENCES subjects (subject_id),
+            days_since_consent INTEGER,
             interview_path TEXT PRIMARY KEY,
             interview_name TEXT NOT NULL,
             interview_type TEXT NOT NULL,
             interview_date TIMESTAMP,
-            subject_id TEXT NOT NULL REFERENCES subjects (subject_id),
             valid_name BOOLEAN NOT NULL
         );
         """
@@ -95,9 +98,9 @@ class Interview:
 
         sql_query = f"""
         INSERT INTO interviews (interview_path, interview_name, interview_type, \
-            interview_date, subject_id, valid_name)
+            interview_date, subject_id, valid_name, days_since_consent)
         VALUES ('{i_path}', '{i_name}', '{self.interview_type}', \
-            '{i_date}', '{self.subject_id}', {self.valid_name})
+            '{i_date}', '{self.subject_id}', {self.valid_name}, {self.days_since_consent});
         """
 
         sql_query = db.handle_null(sql_query)

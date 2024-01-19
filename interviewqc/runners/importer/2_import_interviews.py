@@ -27,6 +27,7 @@ from rich.logging import RichHandler
 from interviewqc.helpers import utils, db
 from interviewqc.helpers.config import config
 from interviewqc.models.interview import Interview
+from interviewqc import data
 
 
 MODULE_NAME = "interviewqc_import_interviews"
@@ -44,6 +45,29 @@ logging.basicConfig(**logargs)
 
 
 INVALID_INTERVIEW_NAMES_COUNT = 0
+
+
+def compute_days_since_consent(
+    config_file: Path, interview_date: datetime, subject_id: str
+) -> int:
+    """
+    Computes the number of days since the subject consented to the study.
+
+    Args:
+        config_file (Path): The path to the configuration file.
+        interview_date (datetime): The date of the interview.
+        subject_id (str): The ID of the subject.
+
+    Returns:
+        int: The number of days since the subject consented to the study.
+    """
+    consent_date = data.get_consent_data(config_file=config_file, subject_id=subject_id)
+
+    if consent_date is None:
+        raise ValueError(f"Subject {subject_id} has no consent date")
+
+    days_since_consent = (interview_date - consent_date).days + 1
+    return days_since_consent
 
 
 def get_interviews_from_dir(
@@ -73,7 +97,7 @@ def get_interviews_from_dir(
         try:
             interview_datetime = interview_name[:19]
             interview_date = datetime.strptime(interview_datetime, "%Y-%m-%d %H.%M.%S")
-        except ValueError as e:
+        except ValueError:
             if (
                 not interview_name == "Audio Record"
                 and not interview_name == "for review"
@@ -185,7 +209,7 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
 
         try:
             interviews += get_interviews_from_site(site_path)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             logger.warn(f"Site {site_name} has no raw data")
 
     logger.info(f"Got {len(interviews)} interviews")
