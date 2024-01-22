@@ -80,7 +80,9 @@ def log_move(config_file: Path, old_path: Path, new_path: Path):
     )
 
 
-def move_subject(subject_dir: Path, data_root: Path, backup_root: Path):
+def move_subject(
+    config_file: Path, subject_dir: Path, data_root: Path, backup_root: Path
+):
     interviews_dir = subject_dir / "interviews"
 
     interview_types: List[str] = ["open", "psychs"]
@@ -106,15 +108,17 @@ def move_subject(subject_dir: Path, data_root: Path, backup_root: Path):
                 new_path.parent.mkdir(parents=True, exist_ok=True)
 
             logger.debug(f"Moving {file_path} to {new_path}")
+            shutil.move(src=file_path, dst=new_path)
+            log_move(config_file=config_file, old_path=file_path, new_path=new_path)
 
-        #         shutil.move(src=file_path, dst=new_path)
-
-        # shutil.rmtree(path=interview_type_dir)
-        # # recreate the directory (empty)
-        # interview_type_dir.mkdir()
+        shutil.rmtree(path=interview_type_dir)
+        # recreate the directory (empty)
+        interview_type_dir.mkdir()
 
 
-def move_site(site_name: str, network: str, data_root: Path, backup_root: Path):
+def move_site(
+    config_file: Path, site_name: str, network: str, data_root: Path, backup_root: Path
+):
     logger.info(f"Moving site {site_name}")
     site_path = data_root / "PROTECTED" / f"{network}{site_name}" / "raw"
 
@@ -132,6 +136,7 @@ def move_site(site_name: str, network: str, data_root: Path, backup_root: Path):
         for subject_dir in subjects_dir_list:
             progress_bar.update(task, advance=1, description=subject_dir.name)
             move_subject(
+                config_file=config_file,
                 subject_dir=subject_dir,
                 data_root=data_root,
                 backup_root=backup_root,
@@ -174,6 +179,7 @@ if __name__ == "__main__":
 
     for site in sites:
         move_site(
+            config_file=config_file,
             site_name=site,
             network=network,
             data_root=data_root,
