@@ -26,6 +26,7 @@ def remove_files(files: List[Path], base_dir: Path, logger: Logger) -> None:
     """
     for file in files:
         if file.exists():
+            logger.info(f"Removing {file}")
             file.unlink()
 
             path = file.parent

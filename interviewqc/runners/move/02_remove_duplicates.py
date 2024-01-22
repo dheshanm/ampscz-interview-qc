@@ -90,6 +90,7 @@ def clear_subject(config_file: Path, subject_dir: Path, backup_root: Path):
                 config_file=config_file, md5_hash=md5_hash
             )
 
+            logger.info(f"Found {len(moved_files)} files with hash {md5_hash}")
             if len(moved_files) > 1:
                 cli.remove_files(files=moved_files, base_dir=backup_root, logger=logger)
 
@@ -97,7 +98,7 @@ def clear_subject(config_file: Path, subject_dir: Path, backup_root: Path):
 def clear_site(
     config_file: Path, site_name: str, network: str, data_root: Path, backup_root: Path
 ):
-    logger.info(f"Moving site {site_name}")
+    logger.info(f"Clearing site {site_name}")
     site_path = data_root / "PROTECTED" / f"{network}{site_name}" / "raw"
 
     if not site_path.exists():
