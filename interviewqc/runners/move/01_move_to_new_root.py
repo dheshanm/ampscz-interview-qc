@@ -25,7 +25,6 @@ import os
 import shutil
 
 from rich.logging import RichHandler
-from rich.progress import Progress
 
 from interviewqc.helpers import utils, db
 from interviewqc.models.moved_file import MovedFile
@@ -81,18 +80,12 @@ def log_move(config_file: Path, old_path: Path, new_path: Path):
     )
 
 
-def move_subject(
-    subject_dir: Path, data_root: Path, backup_root: Path, progress_bar: Progress
-):
+def move_subject(subject_dir: Path, data_root: Path, backup_root: Path):
     interviews_dir = subject_dir / "interviews"
 
     interview_types: List[str] = ["open", "psychs"]
 
-    task = progress_bar.add_task("Moving interview type: ", total=len(interview_types))
     for interview_type in interview_types:
-        progress_bar.update(
-            task, advance=1, description=f"Moving interview type: {interview_type}"
-        )
         interview_type_dir = interviews_dir / interview_type
 
         if not interview_type_dir.exists():
@@ -104,11 +97,7 @@ def move_subject(
                 file_path = Path(root) / file
                 interview_files.append(file_path)
 
-        move_task = progress_bar.add_task(
-            f"Moving {interview_type}", total=len(interview_files)
-        )
         for file_path in interview_files:
-            progress_bar.update(move_task, advance=1, description=file_path.name)
             new_path = get_new_path(
                 old_path=file_path, data_root=data_root, backup_root=backup_root
             )
@@ -146,7 +135,6 @@ def move_site(site_name: str, network: str, data_root: Path, backup_root: Path):
                 subject_dir=subject_dir,
                 data_root=data_root,
                 backup_root=backup_root,
-                progress_bar=progress_bar,
             )
 
 
