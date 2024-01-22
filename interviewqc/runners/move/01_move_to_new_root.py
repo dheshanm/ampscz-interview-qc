@@ -25,8 +25,10 @@ import os
 import shutil
 
 from rich.logging import RichHandler
+from rich.progress import Progress
 
-from interviewqc.helpers import utils
+from interviewqc.helpers import utils, db
+from interviewqc.models.moved_file import MovedFile
 
 MODULE_NAME = "interviewqc_move_to_new_root"
 
@@ -59,29 +61,62 @@ def get_new_path(old_path: Path, data_root: Path, backup_root: Path) -> Path:
     return new_path
 
 
-def move_subject(subject_dir: Path, data_root: Path, backup_root: Path):
+def log_move(config_file: Path, old_path: Path, new_path: Path):
+    """
+    Logs a move to the database.
+
+    Args:
+        config_file (Path): The path to the configuration file.
+        old_path (Path): The old path of the file.
+        new_path (Path): The new path of the file.
+    """
+
+    moved_file = MovedFile(
+        source_file_path=str(old_path), destination_file_path=str(new_path)
+    )
+
+    query = moved_file.to_sql()
+    db.execute_queries(
+        config_file=config_file, queries=[query], show_commands=False, silent=True
+    )
+
+
+def move_subject(
+    subject_dir: Path, data_root: Path, backup_root: Path, progress_bar: Progress
+):
     interviews_dir = subject_dir / "interviews"
 
     interview_types: List[str] = ["open", "psychs"]
 
+    task = progress_bar.add_task("Moving interview type: ", total=len(interview_types))
     for interview_type in interview_types:
+        progress_bar.update(
+            task, advance=1, description=f"Moving interview type: {interview_type}"
+        )
         interview_type_dir = interviews_dir / interview_type
 
         if not interview_type_dir.exists():
             continue
 
+        interview_files: List[Path] = []
         for root, dirs, files in os.walk(interview_type_dir):
             for file in files:
                 file_path = Path(root) / file
+                interview_files.append(file_path)
 
-                new_path = get_new_path(
-                    old_path=file_path, data_root=data_root, backup_root=backup_root
-                )
+        move_task = progress_bar.add_task(
+            f"Moving {interview_type}", total=len(interview_files)
+        )
+        for file_path in interview_files:
+            progress_bar.update(move_task, advance=1, description=file_path.name)
+            new_path = get_new_path(
+                old_path=file_path, data_root=data_root, backup_root=backup_root
+            )
 
-                if not new_path.parent.exists():
-                    new_path.parent.mkdir(parents=True, exist_ok=True)
+            if not new_path.parent.exists():
+                new_path.parent.mkdir(parents=True, exist_ok=True)
 
-                logger.debug(f"Moving {file_path} to {new_path}")
+            logger.debug(f"Moving {file_path} to {new_path}")
 
         #         shutil.move(src=file_path, dst=new_path)
 
