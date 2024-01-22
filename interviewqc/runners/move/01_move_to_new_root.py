@@ -143,7 +143,10 @@ def move_site(site_name: str, network: str, data_root: Path, backup_root: Path):
         for subject_dir in subjects_dir_list:
             progress_bar.update(task, advance=1, description=subject_dir.name)
             move_subject(
-                subject_dir=subject_dir, data_root=data_root, backup_root=backup_root
+                subject_dir=subject_dir,
+                data_root=data_root,
+                backup_root=backup_root,
+                progress_bar=progress_bar,
             )
 
 
