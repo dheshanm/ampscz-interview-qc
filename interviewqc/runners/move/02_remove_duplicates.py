@@ -91,7 +91,7 @@ def clear_subject(config_file: Path, subject_dir: Path, backup_root: Path):
             )
 
             logger.info(f"Found {len(moved_files)} files with hash {md5_hash}")
-            if len(moved_files) > 1:
+            if len(moved_files) >= 1:
                 cli.remove_files(files=moved_files, base_dir=backup_root, logger=logger)
 
 
