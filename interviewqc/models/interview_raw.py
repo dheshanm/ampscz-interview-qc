@@ -101,7 +101,7 @@ class InterviewRaw:
         f_path = db.santize_string(str(self.file_path))
 
         sql_query = f"""
-        INSERT INTO interview_raw (interview_path, file_path)
+        INSERT INTO interview_raw (interview_name, file_path)
         VALUES ('{self.interview_name}', '{f_path}')
         """
 
