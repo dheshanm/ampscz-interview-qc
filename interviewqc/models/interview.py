@@ -99,7 +99,7 @@ class Interview:
         if self.days_since_consent is None:
             self.days_since_consent = "NULL"
 
-        if self.has_additional_files:
+        if self.has_additional_files is None:
             self.has_additional_files = False
 
         sql_query = f"""
