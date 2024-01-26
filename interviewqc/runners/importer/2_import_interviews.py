@@ -432,6 +432,10 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
         duplicate_interviews, note="Duplicate Interview Name"
     )
 
+    logger.info(f"Got {len(duplicate_oosop_interviews)} duplicate interviews")
+    logger.info(f"Got {len(out_of_sop_interviews)} out-of-sop interviews")
+    logger.info("Note: Duplicates are counted as Out-Of-SOP")
+
     for interview in duplicate_oosop_interviews:
         query = interview.to_sql()
         sql_queries.append(query)
