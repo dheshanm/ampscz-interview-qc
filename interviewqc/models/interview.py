@@ -70,7 +70,6 @@ class Interview:
             interview_name TEXT NOT NULL UNIQUE,
             interview_type TEXT NOT NULL,
             interview_date TIMESTAMP,
-            valid_name BOOLEAN NOT NULL
         );
         """
 
