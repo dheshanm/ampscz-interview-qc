@@ -58,7 +58,7 @@ class OutOfSopInterview:
         self.valid_name = valid_name
 
     def __str__(self) -> str:
-        return f"Interview({self.interview_name}, {self.interview_type}, {self.subject_id})"
+        return f"OutOfSopInterview({self.interview_name}, {self.interview_type}, {self.subject_id})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -81,7 +81,7 @@ class OutOfSopInterview:
     @staticmethod
     def drop_table_query() -> str:
         sql_query = """
-        DROP TABLE IF EXISTS interviews;
+        DROP TABLE IF EXISTS oosop_interviews;
         """
 
         return sql_query
@@ -99,7 +99,7 @@ class OutOfSopInterview:
             self.days_since_consent = "NULL"
 
         sql_query = f"""
-        INSERT INTO interviews (interview_path, interview_name, interview_type, \
+        INSERT INTO oosop_interviews (interview_path, interview_name, interview_type, \
             interview_date, subject_id, valid_name, days_since_consent)
         VALUES ('{i_path}', '{i_name}', '{self.interview_type}', \
             '{i_date}', '{self.subject_id}', {self.valid_name}, {self.days_since_consent});
