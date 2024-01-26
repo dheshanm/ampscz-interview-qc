@@ -177,11 +177,14 @@ def get_interviews_from_dir(
 
     for interview_dir in interviews_dir.iterdir():
         if not interview_dir.is_dir():
-            interviews += get_interviews_from_file(
+            file_interviews, file_oosop_interviews = get_interviews_from_file(
                 interviews_file=interview_dir,
                 subject_id=subject_id,
                 interview_type=interview_type,
             )
+
+            interviews.extend(file_interviews)
+            out_of_sop_interviews.extend(file_oosop_interviews)
             continue
 
         interview_file_name = interview_dir.name
