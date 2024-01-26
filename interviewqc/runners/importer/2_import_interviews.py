@@ -117,6 +117,8 @@ def get_interviews_from_file(
 
     consent_date = data.get_consent_data(config_file=config_file, subject_id=subject_id)
 
+    if consent_date is None:
+        raise ValueError(f"Subject {subject_id} has no consent date")
     timepoint = dpdash.get_dpdash_timepoint(
         consent_date=consent_date, event_date=interview_datetime
     )
@@ -219,6 +221,8 @@ def get_interviews_from_dir(
         )
 
         if interview_date is not None:
+            if consent_date is None:
+                raise ValueError(f"Subject {subject_id} has no consent date")
             timepoint = dpdash.get_dpdash_timepoint(
                 consent_date=consent_date, event_date=interview_date
             )
@@ -358,7 +362,7 @@ def cast_interviews_to_oosop_interviews(
     for interview in interviews:
         oosop_interview = OutOfSopInterview(
             interview_path=interview.interview_path,
-            days_since_consent=interview.days_since_consent,
+            days_since_consent=interview.days_since_consent,  # type: ignore
             interview_name=interview.interview_name,
             interview_type=interview.interview_type,
             subject_id=interview.subject_id,
@@ -367,6 +371,8 @@ def cast_interviews_to_oosop_interviews(
         )
 
         duplicate_oosop_interviews.append(oosop_interview)
+
+    return duplicate_oosop_interviews
 
 
 def get_all_interviews(config_file: Path, data_root: Path) -> None:
