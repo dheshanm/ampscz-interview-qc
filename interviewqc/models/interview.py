@@ -33,6 +33,7 @@ class Interview:
         interview_type (str): The type of the interview (open, psychs, etc.)
         subject_id (str): The ID of the subject.
         interview_date (Optional[datetime], optional): The date of the interview. Defaults to None.
+        has_additional_files (bool, optional): Indicates if the interview has additional files. Defaults to False.
     """
 
     def __init__(
@@ -43,6 +44,7 @@ class Interview:
         subject_id: str,
         interview_date: Optional[datetime] = None,
         days_since_consent: Optional[int] = None,
+        has_additional_files: bool = False,
     ):
         if not interview_path.exists():
             raise FileNotFoundError(f"Interview path {interview_path} does not exist")
@@ -53,6 +55,7 @@ class Interview:
         self.interview_type = interview_type
         self.subject_id = subject_id
         self.interview_date = interview_date
+        self.has_additional_files = has_additional_files
 
     def __str__(self) -> str:
         return f"Interview({self.interview_name}, {self.interview_type}, {self.subject_id})"
@@ -69,7 +72,8 @@ class Interview:
             interview_path TEXT PRIMARY KEY,
             interview_name TEXT NOT NULL UNIQUE,
             interview_type TEXT NOT NULL,
-            interview_date TIMESTAMP
+            interview_date TIMESTAMP,
+            has_additional_files BOOLEAN DEFAULT FALSE
         );
         """
 
@@ -95,11 +99,14 @@ class Interview:
         if self.days_since_consent is None:
             self.days_since_consent = "NULL"
 
+        if self.has_additional_files:
+            self.has_additional_files = False
+
         sql_query = f"""
         INSERT INTO interviews (interview_path, interview_name, interview_type, \
-            interview_date, subject_id, days_since_consent)
+            interview_date, subject_id, days_since_consent, has_additional_files)
         VALUES ('{i_path}', '{i_name}', '{self.interview_type}', \
-            '{i_date}', '{self.subject_id}', {self.days_since_consent});
+            '{i_date}', '{self.subject_id}', {self.days_since_consent}, {self.has_additional_files});
         """
 
         sql_query = db.handle_null(sql_query)

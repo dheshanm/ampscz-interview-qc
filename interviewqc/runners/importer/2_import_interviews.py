@@ -238,6 +238,12 @@ def get_interviews_from_dir(
             time_range=timepoint,
         )
 
+        additional_files_dir = interviews_dir / "Additional interview files"
+        if additional_files_dir.exists():
+            has_additional_files = True
+        else:
+            has_additional_files = False
+
         if valid_name:
             interview = Interview(
                 interview_path=interview_dir,
@@ -246,6 +252,7 @@ def get_interviews_from_dir(
                 interview_type=interview_type,
                 subject_id=subject_id,
                 interview_date=interview_date,
+                has_additional_files=has_additional_files,
             )
 
             interviews.append(interview)
@@ -258,6 +265,7 @@ def get_interviews_from_dir(
                 subject_id=subject_id,
                 interview_date=interview_date,
                 note="Invalid Interview Name",
+                has_additional_files=has_additional_files,
             )
 
             out_of_sop_interviews.append(out_of_sop_interview)
