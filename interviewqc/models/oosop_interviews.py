@@ -106,7 +106,7 @@ class OutOfSopInterview:
         INSERT INTO oosop_interviews (interview_path, interview_name, interview_type, \
             interview_date, subject_id, note, days_since_consent)
         VALUES ('{i_path}', '{i_name}', '{self.interview_type}', \
-            '{i_date}', '{self.subject_id}', {self.note}, {self.days_since_consent});
+            '{i_date}', '{self.subject_id}', '{self.note}', {self.days_since_consent});
         """
 
         sql_query = db.handle_null(sql_query)
