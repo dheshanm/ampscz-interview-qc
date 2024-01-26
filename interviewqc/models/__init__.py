@@ -28,6 +28,7 @@ from interviewqc.models.site import Site
 from interviewqc.models.subject import Subject
 from interviewqc.models.interview import Interview
 from interviewqc.models.interview_raw import InterviewRaw
+from interviewqc.models.oosop_interviews import OutOfSopInterview
 from interviewqc.models.transcripts import Transcript
 
 
@@ -35,6 +36,7 @@ def init_db(config_file: Path):
     drop_queries: List[str] = [
         Transcript.drop_table_query(),
         InterviewRaw.drop_table_query(),
+        OutOfSopInterview.drop_table_query(),
         Interview.drop_table_query(),
         Subject.drop_table_query(),
         Site.drop_table_query(),
@@ -48,6 +50,7 @@ def init_db(config_file: Path):
         Site.init_table_query(),
         Subject.init_table_query(),
         Interview.init_table_query(),
+        OutOfSopInterview.init_table_query(),
         InterviewRaw.init_table_query(),
         Transcript.init_table_query(),
     ]

@@ -2,7 +2,6 @@
 
 import sys
 from pathlib import Path
-from typing import List
 
 file = Path(__file__).resolve()
 parent = file.parent

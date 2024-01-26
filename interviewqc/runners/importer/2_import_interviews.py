@@ -19,7 +19,7 @@ except ValueError:
 
 
 import logging
-from typing import List
+from typing import List, Tuple
 from datetime import datetime
 
 from rich.logging import RichHandler
@@ -27,6 +27,7 @@ from rich.logging import RichHandler
 from interviewqc.helpers import utils, db, dpdash
 from interviewqc.helpers.config import config
 from interviewqc.models.interview import Interview
+from interviewqc.models.oosop_interviews import OutOfSopInterview
 from interviewqc import data
 
 
@@ -72,7 +73,7 @@ def compute_days_since_consent(
 
 def get_interviews_from_file(
     interviews_file: Path, subject_id: str, interview_type: str
-) -> List[Interview]:
+) -> Tuple[List[Interview], List[OutOfSopInterview]]:
     """
     Retrieves a list of Interview objects from the specified file.
 
@@ -86,6 +87,7 @@ def get_interviews_from_file(
 
     """
     interviews: List[Interview] = []
+    out_of_sop_interviews: List[OutOfSopInterview] = []
     global INVALID_INTERVIEW_NAMES_COUNT
 
     file_name = interviews_file.name
@@ -128,24 +130,35 @@ def get_interviews_from_file(
         time_range=timepoint,
     )
 
-    interview = Interview(
-        interview_path=interviews_file,
-        days_since_consent=days_since_consent,
-        interview_name=interview_name,
-        interview_type=interview_type,
-        subject_id=subject_id,
-        interview_date=interview_datetime,
-        valid_name=valid_name,
-    )
+    if valid_name:
+        interview = Interview(
+            interview_path=interviews_file,
+            days_since_consent=days_since_consent,
+            interview_name=interview_name,
+            interview_type=interview_type,
+            subject_id=subject_id,
+            interview_date=interview_datetime,
+        )
 
-    interviews.append(interview)
+        interviews.append(interview)
+    else:
+        oo_sop_interview = OutOfSopInterview(
+            interview_path=interviews_file,
+            days_since_consent=days_since_consent,
+            interview_name=interview_name,
+            interview_type=interview_type,
+            subject_id=subject_id,
+            interview_date=interview_datetime,
+        )
 
-    return interviews
+        out_of_sop_interviews.append(oo_sop_interview)
+
+    return interviews, out_of_sop_interviews
 
 
 def get_interviews_from_dir(
     interviews_dir: Path, subject_id: str, interview_type: str
-) -> List[Interview]:
+) -> Tuple[List[Interview], List[OutOfSopInterview]]:
     """
     Retrieves a list of Interview objects from the specified directory.
 
@@ -159,6 +172,7 @@ def get_interviews_from_dir(
 
     """
     interviews: List[Interview] = []
+    out_of_sop_interviews: List[OutOfSopInterview] = []
     global INVALID_INTERVIEW_NAMES_COUNT
 
     for interview_dir in interviews_dir.iterdir():
@@ -216,22 +230,35 @@ def get_interviews_from_dir(
             time_range=timepoint,
         )
 
-        interview = Interview(
-            interview_path=interview_dir,
-            days_since_consent=days_sice_consent,
-            interview_name=interview_name,
-            interview_type=interview_type,
-            subject_id=subject_id,
-            interview_date=interview_date,
-            valid_name=valid_name,
-        )
+        if valid_name:
+            interview = Interview(
+                interview_path=interview_dir,
+                days_since_consent=days_sice_consent,
+                interview_name=interview_name,
+                interview_type=interview_type,
+                subject_id=subject_id,
+                interview_date=interview_date,
+            )
 
-        interviews.append(interview)
+            interviews.append(interview)
+        else:
+            out_of_sop_interview = OutOfSopInterview(
+                interview_path=interview_dir,
+                days_since_consent=days_sice_consent,
+                interview_name=interview_name,
+                interview_type=interview_type,
+                subject_id=subject_id,
+                interview_date=interview_date,
+            )
 
-    return interviews
+            out_of_sop_interviews.append(out_of_sop_interview)
+
+    return interviews, out_of_sop_interviews
 
 
-def get_interviews_from_subject(subject_path: Path) -> List[Interview]:
+def get_interviews_from_subject(
+    subject_path: Path,
+) -> Tuple[List[Interview], List[OutOfSopInterview]]:
     """
     Retrieves a list of interviews from the specified subject path.
 
@@ -246,25 +273,34 @@ def get_interviews_from_subject(subject_path: Path) -> List[Interview]:
     subject_id = subject_path.name
 
     interviews: List[Interview] = []
+    out_of_sop_interviews: List[OutOfSopInterview] = []
 
     # open Interviews
     open_interviews_path = interview_path / "open"
 
     if open_interviews_path.exists():
-        interviews += get_interviews_from_dir(open_interviews_path, subject_id, "open")
+        subject_interviews, subject_oosop_interviews = get_interviews_from_dir(
+            open_interviews_path, subject_id, "open"
+        )
+        interviews += subject_interviews
+        out_of_sop_interviews += subject_oosop_interviews
 
     # psychs Interviews
     psychs_interviews_path = interview_path / "psychs"
 
     if psychs_interviews_path.exists():
-        interviews += get_interviews_from_dir(
+        subject_interviews, subject_oosop_interviews = get_interviews_from_dir(
             psychs_interviews_path, subject_id, "psychs"
         )
+        interviews += subject_interviews
+        out_of_sop_interviews += subject_oosop_interviews
 
-    return interviews
+    return interviews, out_of_sop_interviews
 
 
-def get_interviews_from_site(site_path: Path) -> List[Interview]:
+def get_interviews_from_site(
+    site_path: Path,
+) -> Tuple[List[Interview], List[OutOfSopInterview]]:
     """
     Retrieves a list of interviews from the specified site path.
 
@@ -279,6 +315,7 @@ def get_interviews_from_site(site_path: Path) -> List[Interview]:
     """
     subjects_path = site_path / "raw"
     interviews: List[Interview] = []
+    out_of_sop_interviews: List[OutOfSopInterview] = []
 
     if not subjects_path.exists():
         raise FileNotFoundError(f"Subjects path {subjects_path} does not exist")
@@ -287,9 +324,13 @@ def get_interviews_from_site(site_path: Path) -> List[Interview]:
         if not subject_path.is_dir():
             continue
 
-        interviews += get_interviews_from_subject(subject_path)
+        subject_interviews, subject_out_of_sop_interviews = get_interviews_from_subject(
+            subject_path
+        )
+        interviews += subject_interviews
+        out_of_sop_interviews += subject_out_of_sop_interviews
 
-    return interviews
+    return interviews, out_of_sop_interviews
 
 
 def get_all_interviews(config_file: Path, data_root: Path) -> None:
@@ -305,6 +346,7 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
     """
     sites_path = data_root / "PROTECTED"
     interviews: List[Interview] = []
+    out_of_sop_interviews: List[OutOfSopInterview] = []
     global INVALID_INTERVIEW_NAMES_COUNT
 
     for site_path in sites_path.iterdir():
@@ -316,7 +358,11 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
             continue
 
         try:
-            interviews += get_interviews_from_site(site_path)
+            site_interviews, site_out_of_sop_interviews = get_interviews_from_site(
+                site_path
+            )
+            interviews += site_interviews
+            out_of_sop_interviews += site_out_of_sop_interviews
         except FileNotFoundError:
             logger.warn(f"Site {site_name} has no raw data")
 
@@ -325,6 +371,10 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
 
     sql_queries: List[str] = []
     for interview in interviews:
+        query = interview.to_sql()
+        sql_queries.append(query)
+
+    for interview in out_of_sop_interviews:
         query = interview.to_sql()
         sql_queries.append(query)
 

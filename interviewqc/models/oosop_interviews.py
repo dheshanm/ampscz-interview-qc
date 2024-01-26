@@ -23,9 +23,9 @@ from typing import Optional
 from interviewqc.helpers import db
 
 
-class Interview:
+class OutOfSopInterview:
     """
-    Represents an interview.
+    Represents an interview that is out of SOP.
 
     Args:
         interview_path (Path): The path to the interview.
@@ -33,6 +33,7 @@ class Interview:
         interview_type (str): The type of the interview (open, psychs, etc.)
         subject_id (str): The ID of the subject.
         interview_date (Optional[datetime], optional): The date of the interview. Defaults to None.
+        valid_name (bool, optional): Indicates if the name is valid. Defaults to True.
     """
 
     def __init__(
@@ -43,6 +44,7 @@ class Interview:
         subject_id: str,
         interview_date: Optional[datetime] = None,
         days_since_consent: Optional[int] = None,
+        valid_name=True,
     ):
         if not interview_path.exists():
             raise FileNotFoundError(f"Interview path {interview_path} does not exist")
@@ -53,6 +55,7 @@ class Interview:
         self.interview_type = interview_type
         self.subject_id = subject_id
         self.interview_date = interview_date
+        self.valid_name = valid_name
 
     def __str__(self) -> str:
         return f"Interview({self.interview_name}, {self.interview_type}, {self.subject_id})"
@@ -63,14 +66,13 @@ class Interview:
     @staticmethod
     def init_table_query() -> str:
         sql_query = """
-        CREATE TABLE interviews (
+        CREATE TABLE oosop_interviews (
             subject_id TEXT NOT NULL REFERENCES subjects (subject_id),
             days_since_consent INTEGER,
             interview_path TEXT PRIMARY KEY,
-            interview_name TEXT NOT NULL UNIQUE,
+            interview_name TEXT NOT NULL,
             interview_type TEXT NOT NULL,
-            interview_date TIMESTAMP,
-            valid_name BOOLEAN NOT NULL
+            interview_date TIMESTAMP
         );
         """
 
@@ -98,9 +100,9 @@ class Interview:
 
         sql_query = f"""
         INSERT INTO interviews (interview_path, interview_name, interview_type, \
-            interview_date, subject_id, days_since_consent)
+            interview_date, subject_id, valid_name, days_since_consent)
         VALUES ('{i_path}', '{i_name}', '{self.interview_type}', \
-            '{i_date}', '{self.subject_id}', {self.days_since_consent});
+            '{i_date}', '{self.subject_id}', {self.valid_name}, {self.days_since_consent});
         """
 
         sql_query = db.handle_null(sql_query)
