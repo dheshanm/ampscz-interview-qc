@@ -338,6 +338,37 @@ def get_interviews_from_site(
     return interviews, out_of_sop_interviews
 
 
+def get_duplicate_interviews(interviews: List[Interview]) -> Set[str]:
+    duplicate_interview_names: Set[str] = set()
+    interviews_names: Set[str] = set()
+
+    for interview in interviews:
+        if interview.interview_name in interviews_names:
+            duplicate_interview_names.add(interview.interview_name)
+
+        interviews_names.add(interview.interview_name)
+
+    return duplicate_interview_names
+
+
+def cast_interviews_to_oosop_interviews(
+    interviews: List[Interview], note: str
+) -> List[OutOfSopInterview]:
+    duplicate_oosop_interviews: List[OutOfSopInterview] = []
+    for interview in interviews:
+        oosop_interview = OutOfSopInterview(
+            interview_path=interview.interview_path,
+            days_since_consent=interview.days_since_consent,
+            interview_name=interview.interview_name,
+            interview_type=interview.interview_type,
+            subject_id=interview.subject_id,
+            interview_date=interview.interview_date,
+            note=note,
+        )
+
+        duplicate_oosop_interviews.append(oosop_interview)
+
+
 def get_all_interviews(config_file: Path, data_root: Path) -> None:
     """
     Retrieves all interviews from the specified data root directory and imports them into a database.
@@ -374,13 +405,7 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
     logger.info(f"Got {len(interviews)} interviews")
     logger.warning(f"Invalid interviews count: {INVALID_INTERVIEW_NAMES_COUNT}")
 
-    duplicate_interview_names: Set[str] = set()
-    interviews_names: Set[str] = set()
-
-    for interview in interviews:
-        if interview.interview_name in interviews_names:
-            duplicate_interview_names.add(interview.interview_name)
-
+    duplicate_interview_names = get_duplicate_interviews(interviews)
     sql_queries: List[str] = []
     duplicate_interviews: List[Interview] = []
 
@@ -395,20 +420,15 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
         query = interview.to_sql()
         sql_queries.append(query)
 
-    duplicate_oosop_interviews: List[OutOfSopInterview] = []
-    for duplicate_interview in duplicate_interviews:
-        oosop_interview = OutOfSopInterview(
-            interview_path=duplicate_interview.interview_path,
-            days_since_consent=duplicate_interview.days_since_consent,
-            interview_name=duplicate_interview.interview_name,
-            interview_type=duplicate_interview.interview_type,
-            subject_id=duplicate_interview.subject_id,
-            interview_date=duplicate_interview.interview_date,
-            note="Duplicate Interview Name",
-        )
+    duplicate_oosop_interviews: List[
+        OutOfSopInterview
+    ] = cast_interviews_to_oosop_interviews(
+        duplicate_interviews, note="Duplicate Interview Name"
+    )
 
-        duplicate_oosop_interviews.append(oosop_interview)
-        sql_queries.append(oosop_interview.to_sql())
+    for interview in duplicate_oosop_interviews:
+        query = interview.to_sql()
+        sql_queries.append(query)
 
     db.execute_queries(
         config_file=config_file, queries=sql_queries, show_commands=False
