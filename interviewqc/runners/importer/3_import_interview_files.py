@@ -19,8 +19,7 @@ except ValueError:
 
 
 import logging
-from typing import List
-from datetime import datetime
+from typing import List, Tuple
 import os
 import concurrent.futures
 from concurrent.futures import ProcessPoolExecutor
@@ -49,7 +48,7 @@ logargs = {
 logging.basicConfig(**logargs)
 
 
-def get_all_interview_paths(config_file: Path) -> List[Path]:
+def get_all_interview_paths(config_file: Path) -> List[Tuple[Path, str]]:
     """
     Retrieves a list of interview paths that have not been imported yet.
 
@@ -57,10 +56,12 @@ def get_all_interview_paths(config_file: Path) -> List[Path]:
         config_file (Path): The path to the configuration file.
 
     Returns:
-        List[Path]: A list of interview paths that have not been imported yet.
+        List[Tuple[Path, str]]: A list of interview paths that have not been imported yet.
     """
     sql_query = """
-    SELECT interview_path FROM interviews WHERE interview_path NOT IN (
+    SELECT interview_path, interview_name
+    FROM interviews
+    WHERE interview_path NOT IN (
         SELECT interview_path FROM interview_raw
     );
     """
@@ -68,31 +69,16 @@ def get_all_interview_paths(config_file: Path) -> List[Path]:
     df = db.execute_sql(config_file=config_file, query=sql_query)
 
     interview_paths = df["interview_path"].tolist()
+    interview_names = df["interview_name"].tolist()
 
     # cast str to Path
     interview_paths = [Path(interview_path) for interview_path in interview_paths]
 
-    return interview_paths
-
-
-def path_to_file(path: Path) -> File:
-    file_path = path
-    file_name = file_path.name
-    file_type = file_path.suffix.lower()
-    file_size = file_path.stat().st_size
-    file_size_mb = file_size / 1024 / 1024
-
-    m_time = datetime.fromtimestamp(file_path.stat().st_mtime)
-
-    file = File(
-        file_name=file_name,
-        file_type=file_type,
-        file_size=file_size_mb,
-        file_path=file_path,
-        m_time=m_time,
+    interview_paths_with_name: List[Tuple[Path, str]] = list(
+        zip(interview_paths, interview_names)
     )
 
-    return file
+    return interview_paths_with_name
 
 
 def scan_all_files_for_interview(interview_path: Path) -> List[File]:
@@ -108,7 +94,7 @@ def scan_all_files_for_interview(interview_path: Path) -> List[File]:
     interview_files: List[File] = []
 
     if interview_path.is_file():
-        interview_file = path_to_file(interview_path)
+        interview_file = File.from_path(interview_path)
         interview_files.append(interview_file)
         return interview_files
 
@@ -117,30 +103,34 @@ def scan_all_files_for_interview(interview_path: Path) -> List[File]:
             file_path = Path(root) / file
             if file.startswith(".checksum"):  # ignore checksum files
                 continue
-            interview_file = path_to_file(file_path)
+            interview_file = File.from_path(file_path)
 
             interview_files.append(interview_file)
 
     return interview_files
 
 
-def process_interview_path(interview_path: Path, config_file: Path):
+def process_interview_path(
+    interview_path_with_name: Tuple[Path, str], config_file: Path
+):
     """
     Processes a single interview path in a separate process.
 
     Args:
-        interview_path (Path): The path to the interview directory.
+        interview_path (Tuple[Path, str]): A tuple containing the interview path and the interview name.
         config_file (Path): The path to the configuration file.
 
     Returns:
         None
     """
+    interview_path, interview_name = interview_path_with_name
+
     files = scan_all_files_for_interview(interview_path=interview_path)
     sql_queries = [interview_file.to_sql() for interview_file in files]
 
     for interview_file in files:
         interview_mapping = InterviewRaw(
-            interview_path=interview_path, file_path=interview_file.file_path
+            interview_name=interview_name, file_path=interview_file.file_path
         )
         sql_queries.append(interview_mapping.to_sql())
 
@@ -188,8 +178,10 @@ def scan_for_interview_files(config_file: Path):
         if PARALLEL:
             with ProcessPoolExecutor(max_workers=NUM_WORKERS) as executor:
                 futures = [
-                    executor.submit(wrapper_process_interview_path, (path, config_file))
-                    for path in interview_paths
+                    executor.submit(
+                        wrapper_process_interview_path, (path_with_name, config_file)
+                    )
+                    for path_with_name in interview_paths
                 ]
 
                 for future in concurrent.futures.as_completed(futures):
@@ -199,9 +191,11 @@ def scan_for_interview_files(config_file: Path):
         #     pool.starmap(process_interview_path, [(path, config_file) for path in interview_paths])
 
         else:
-            for interview_path in interview_paths:
+            for interview_path_with_name in interview_paths:
                 progress.update(task, advance=1)
                 files: List[File] = []
+
+                interview_path, interview_name = interview_path_with_name
 
                 interview_files = scan_all_files_for_interview(
                     interview_path=interview_path
@@ -215,7 +209,7 @@ def scan_for_interview_files(config_file: Path):
 
                 for interview_file in interview_files:
                     interview_mapping = InterviewRaw(
-                        interview_path=interview_path,
+                        interview_name=interview_name,
                         file_path=interview_file.file_path,
                     )
 

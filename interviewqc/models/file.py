@@ -118,3 +118,23 @@ class File:
         """
 
         return sql_query
+
+    @staticmethod
+    def from_path(file_path: Path) -> "File":
+        file_path = file_path
+        file_name = file_path.name
+        file_type = file_path.suffix.lower()
+        file_size = file_path.stat().st_size
+        file_size_mb = file_size / 1024 / 1024
+
+        m_time = datetime.fromtimestamp(file_path.stat().st_mtime)
+
+        file = File(
+            file_name=file_name,
+            file_type=file_type,
+            file_size=file_size_mb,
+            file_path=file_path,
+            m_time=m_time,
+        )
+
+        return file

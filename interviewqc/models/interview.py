@@ -70,7 +70,7 @@ class Interview:
             subject_id TEXT NOT NULL REFERENCES subjects (subject_id),
             days_since_consent INTEGER,
             interview_path TEXT PRIMARY KEY,
-            interview_name TEXT NOT NULL,
+            interview_name TEXT NOT NULL UNIQUE,
             interview_type TEXT NOT NULL,
             interview_date TIMESTAMP,
             valid_name BOOLEAN NOT NULL

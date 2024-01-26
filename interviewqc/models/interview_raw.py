@@ -25,19 +25,19 @@ class InterviewRaw:
     Maps a file to an interview.
 
     Attributes:
-        interview_path (Path): The path to the interview.
+        interview_name (str): The name of the interview.
         file_path (Path): The path to the file associated with the interview.
     """
 
-    def __init__(self, interview_path: Path, file_path: Path):
+    def __init__(self, interview_name: Path, file_path: Path):
         """
         Initializes a new instance of the InterviewRaw class.
 
         Args:
-            interview_path (Path): The path to the interview.
+            interview_name (str): The name of the interview.
             file_path (Path): The path to the file associated with the interview.
         """
-        self.interview_path = interview_path
+        self.interview_name = interview_name
         self.file_path = file_path
 
     def __repr__(self):
@@ -47,7 +47,7 @@ class InterviewRaw:
         Returns:
             str: A string representation of the InterviewRaw object.
         """
-        return f"<InterviewRaw {self.interview_path} {self.file_path}>"
+        return f"<InterviewRaw {self.interview_name} {self.file_path}>"
 
     def __str__(self):
         """
@@ -68,9 +68,9 @@ class InterviewRaw:
         """
         sql_query = """
         CREATE TABLE interview_raw (
-            interview_path TEXT NOT NULL,
+            interview_name TEXT NOT NULL,
             file_path TEXT NOT NULL PRIMARY KEY,
-            FOREIGN KEY (interview_path) REFERENCES interviews (interview_path),
+            FOREIGN KEY (interview_name) REFERENCES interviews (interview_name),
             FOREIGN KEY (file_path) REFERENCES files (file_path)
         );
         """
@@ -98,12 +98,11 @@ class InterviewRaw:
         Returns:
             str: The SQL query for inserting the InterviewRaw object into the interview_raw table.
         """
-        i_path = db.santize_string(str(self.interview_path))
         f_path = db.santize_string(str(self.file_path))
 
         sql_query = f"""
         INSERT INTO interview_raw (interview_path, file_path)
-        VALUES ('{i_path}', '{f_path}')
+        VALUES ('{self.interview_name}', '{f_path}')
         """
 
         return sql_query
