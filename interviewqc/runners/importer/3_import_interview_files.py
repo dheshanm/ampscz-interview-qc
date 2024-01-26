@@ -75,6 +75,26 @@ def get_all_interview_paths(config_file: Path) -> List[Path]:
     return interview_paths
 
 
+def path_to_file(path: Path) -> File:
+    file_path = path
+    file_name = file_path.name
+    file_type = file_path.suffix
+    file_size = file_path.stat().st_size
+    file_size_mb = file_size / 1024 / 1024
+
+    m_time = datetime.fromtimestamp(file_path.stat().st_mtime)
+
+    file = File(
+        file_name=file_name,
+        file_type=file_type,
+        file_size=file_size_mb,
+        file_path=file_path,
+        m_time=m_time,
+    )
+
+    return file
+
+
 def scan_all_files_for_interview(interview_path: Path) -> List[File]:
     """
     Scans all files in the given interview_path directory and returns a list of File objects.
@@ -87,23 +107,15 @@ def scan_all_files_for_interview(interview_path: Path) -> List[File]:
     """
     interview_files: List[File] = []
 
+    if interview_path.is_file():
+        interview_file = path_to_file(interview_path)
+        interview_files.append(interview_file)
+        return interview_files
+
     for root, dirs, files in os.walk(interview_path):
         for file in files:
             file_path = Path(root) / file
-            file_name = file_path.name
-            file_type = file_path.suffix
-            file_size = file_path.stat().st_size
-            file_size_mb = file_size / 1024 / 1024
-
-            m_time = datetime.fromtimestamp(file_path.stat().st_mtime)
-
-            interview_file = File(
-                file_name=file_name,
-                file_type=file_type,
-                file_size=file_size_mb,
-                file_path=file_path,
-                m_time=m_time,
-            )
+            interview_file = path_to_file(file_path)
 
             interview_files.append(interview_file)
 
