@@ -90,7 +90,9 @@ def get_interviews_from_file(
 
     file_name = interviews_file.name
     if interviews_file.suffix != ".wav" or interviews_file.suffix != ".WAV":
-        logger.warning(f"Interview '{interviews_file}' has invalid extension")
+        logger.warning(
+            f"Interview '{file_name}' has invalid extension: {interviews_file.suffix}"
+        )
         return interviews
 
     if len(interviews_file.stem) != 14:
