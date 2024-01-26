@@ -100,6 +100,7 @@ def get_interviews_from_file(
     if len(interviews_file.stem) != 14:
         valid_name = False
         INVALID_INTERVIEW_NAMES_COUNT += 1
+        logger.warning(f"Interview '{file_name}' has Out-of-SOP name")
     else:
         valid_name = True
 
