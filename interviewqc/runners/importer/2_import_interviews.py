@@ -100,7 +100,7 @@ def get_interviews_from_file(
     if len(interviews_file.stem) != 14:
         valid_name = False
         INVALID_INTERVIEW_NAMES_COUNT += 1
-        logger.warning(f"Interview '{file_name}' has Out-of-SOP name")
+        logger.warning(f"Interview '{interviews_file}' has Out-of-SOP name")
     else:
         valid_name = True
 
@@ -113,10 +113,25 @@ def get_interviews_from_file(
         subject_id=subject_id,
     )
 
+    consent_date = data.get_consent_data(config_file=config_file, subject_id=subject_id)
+
+    timepoint = dpdash.get_dpdash_timepoint(
+        consent_date=consent_date, event_date=interview_datetime
+    )
+
+    interview_name = dpdash.get_dpdash_name(
+        study=subject_id[:2],
+        subject=subject_id,
+        data_type="interview",
+        category=interview_type,
+        optional_tag=None,
+        time_range=timepoint,
+    )
+
     interview = Interview(
         interview_path=interviews_file,
         days_since_consent=days_since_consent,
-        interview_name=file_name,
+        interview_name=interview_name,
         interview_type=interview_type,
         subject_id=subject_id,
         interview_date=interview_datetime,
