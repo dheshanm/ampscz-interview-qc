@@ -78,7 +78,7 @@ def get_all_interview_paths(config_file: Path) -> List[Path]:
 def path_to_file(path: Path) -> File:
     file_path = path
     file_name = file_path.name
-    file_type = file_path.suffix
+    file_type = file_path.suffix.lower()
     file_size = file_path.stat().st_size
     file_size_mb = file_size / 1024 / 1024
 
@@ -115,6 +115,8 @@ def scan_all_files_for_interview(interview_path: Path) -> List[File]:
     for root, dirs, files in os.walk(interview_path):
         for file in files:
             file_path = Path(root) / file
+            if file.startswith(".checksum"):  # ignore checksum files
+                continue
             interview_file = path_to_file(file_path)
 
             interview_files.append(interview_file)
