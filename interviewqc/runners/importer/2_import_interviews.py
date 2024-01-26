@@ -95,9 +95,9 @@ def get_interviews_from_file(
         logger.warning(
             f"Interview '{file_name}' has invalid extension: {interviews_file.suffix}"
         )
-        return interviews
+        return interviews, out_of_sop_interviews
     if file_name.startswith("."):
-        return interviews
+        return interviews, out_of_sop_interviews
 
     if len(interviews_file.stem) != 14:
         valid_name = False
