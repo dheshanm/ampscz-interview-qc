@@ -70,6 +70,59 @@ def compute_days_since_consent(
     return days_since_consent
 
 
+def get_interviews_from_file(
+    interviews_file: Path, subject_id: str, interview_type: str
+) -> List[Interview]:
+    """
+    Retrieves a list of Interview objects from the specified file.
+
+    Args:
+        interviews_file (Path): The file containing the interviews.
+        subject_id (str): The ID of the subject.
+        interview_type (str): The type of the interview.
+
+    Returns:
+        List[Interview]: A list of Interview objects.
+
+    """
+    interviews: List[Interview] = []
+    global INVALID_INTERVIEW_NAMES_COUNT
+
+    file_name = interviews_file.name
+    if interviews_file.suffix != ".wav" or interviews_file.suffix != ".WAV":
+        logger.warning(f"Interview '{interviews_file}' has invalid extension")
+        return interviews
+
+    if len(interviews_file.stem) != 14:
+        valid_name = False
+        INVALID_INTERVIEW_NAMES_COUNT += 1
+    else:
+        valid_name = True
+
+    interview_datetime_str = file_name[:14]
+    interview_datetime = datetime.strptime(interview_datetime_str, "%Y%m%d%H%M%S")
+
+    days_since_consent = compute_days_since_consent(
+        config_file=config_file,
+        interview_date=interview_datetime,
+        subject_id=subject_id,
+    )
+
+    interview = Interview(
+        interview_path=interviews_file,
+        days_since_consent=days_since_consent,
+        interview_name=file_name,
+        interview_type=interview_type,
+        subject_id=subject_id,
+        interview_date=interview_datetime,
+        valid_name=valid_name,
+    )
+
+    interviews.append(interview)
+
+    return interviews
+
+
 def get_interviews_from_dir(
     interviews_dir: Path, subject_id: str, interview_type: str
 ) -> List[Interview]:
@@ -90,6 +143,11 @@ def get_interviews_from_dir(
 
     for interview_dir in interviews_dir.iterdir():
         if not interview_dir.is_dir():
+            interviews += get_interviews_from_file(
+                interviews_file=interview_dir,
+                subject_id=subject_id,
+                interview_type=interview_type,
+            )
             continue
 
         interview_name = interview_dir.name
