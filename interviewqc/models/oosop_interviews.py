@@ -44,7 +44,7 @@ class OutOfSopInterview:
         subject_id: str,
         interview_date: Optional[datetime] = None,
         days_since_consent: Optional[int] = None,
-        valid_name=True,
+        note: Optional[str] = None,
     ):
         if not interview_path.exists():
             raise FileNotFoundError(f"Interview path {interview_path} does not exist")
@@ -55,7 +55,7 @@ class OutOfSopInterview:
         self.interview_type = interview_type
         self.subject_id = subject_id
         self.interview_date = interview_date
-        self.valid_name = valid_name
+        self.note = note
 
     def __str__(self) -> str:
         return f"OutOfSopInterview({self.interview_name}, {self.interview_type}, {self.subject_id})"
@@ -72,7 +72,8 @@ class OutOfSopInterview:
             interview_path TEXT PRIMARY KEY,
             interview_name TEXT NOT NULL,
             interview_type TEXT NOT NULL,
-            interview_date TIMESTAMP
+            interview_date TIMESTAMP,
+            note TEXT
         );
         """
 
@@ -98,11 +99,14 @@ class OutOfSopInterview:
         if self.days_since_consent is None:
             self.days_since_consent = "NULL"
 
+        if self.note is None:
+            self.note = "NULL"
+
         sql_query = f"""
         INSERT INTO oosop_interviews (interview_path, interview_name, interview_type, \
-            interview_date, subject_id, valid_name, days_since_consent)
+            interview_date, subject_id, note, days_since_consent)
         VALUES ('{i_path}', '{i_name}', '{self.interview_type}', \
-            '{i_date}', '{self.subject_id}', {self.valid_name}, {self.days_since_consent});
+            '{i_date}', '{self.subject_id}', {self.note}, {self.days_since_consent});
         """
 
         sql_query = db.handle_null(sql_query)
