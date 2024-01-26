@@ -69,7 +69,7 @@ class Interview:
             interview_path TEXT PRIMARY KEY,
             interview_name TEXT NOT NULL UNIQUE,
             interview_type TEXT NOT NULL,
-            interview_date TIMESTAMP,
+            interview_date TIMESTAMP
         );
         """
 
