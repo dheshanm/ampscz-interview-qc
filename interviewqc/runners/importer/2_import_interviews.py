@@ -24,7 +24,7 @@ from datetime import datetime
 
 from rich.logging import RichHandler
 
-from interviewqc.helpers import utils, db
+from interviewqc.helpers import utils, db, dpdash
 from interviewqc.helpers.config import config
 from interviewqc.models.interview import Interview
 from interviewqc import data
@@ -154,15 +154,15 @@ def get_interviews_from_dir(
             )
             continue
 
-        interview_name = interview_dir.name
+        interview_file_name = interview_dir.name
         valid_name = True
         try:
-            interview_datetime = interview_name[:19]
+            interview_datetime = interview_file_name[:19]
             interview_date = datetime.strptime(interview_datetime, "%Y-%m-%d %H.%M.%S")
         except ValueError:
             if (
-                not interview_name == "Audio Record"
-                and not interview_name == "for review"
+                not interview_file_name == "Audio Record"
+                and not interview_file_name == "for review"
             ):
                 logger.warning(f"Interview '{interview_dir}' has Out-of-SOP name")
                 interview_date = None
@@ -179,6 +179,26 @@ def get_interviews_from_dir(
                 interview_date=interview_date,
                 subject_id=subject_id,
             )
+
+        consent_date = data.get_consent_data(
+            config_file=config_file, subject_id=subject_id
+        )
+
+        if interview_date is not None:
+            timepoint = dpdash.get_dpdash_timepoint(
+                consent_date=consent_date, event_date=interview_date
+            )
+        else:
+            timepoint = "day0"
+
+        interview_name = dpdash.get_dpdash_name(
+            study=subject_id[:2],
+            subject=subject_id,
+            data_type="interview",
+            category=interview_type,
+            optional_tag=None,
+            time_range=timepoint,
+        )
 
         interview = Interview(
             interview_path=interview_dir,
