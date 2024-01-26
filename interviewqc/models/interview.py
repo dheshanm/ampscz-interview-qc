@@ -39,11 +39,11 @@ class Interview:
     def __init__(
         self,
         interview_path: Path,
-        days_since_consent: int,
         interview_name: str,
         interview_type: str,
         subject_id: str,
         interview_date: Optional[datetime] = None,
+        days_since_consent: Optional[int] = None,
         valid_name=True,
     ):
         if not interview_path.exists():
@@ -95,6 +95,9 @@ class Interview:
             i_date = "NULL"
         else:
             i_date = self.interview_date.strftime("%Y-%m-%d %H:%M:%S")
+
+        if self.days_since_consent is None:
+            self.days_since_consent = "NULL"
 
         sql_query = f"""
         INSERT INTO interviews (interview_path, interview_name, interview_type, \
