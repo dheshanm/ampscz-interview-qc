@@ -238,7 +238,7 @@ def get_interviews_from_dir(
             time_range=timepoint,
         )
 
-        additional_files_dir = interviews_dir / "Additional interview files"
+        additional_files_dir = interview_dir / "Additional interview files"
         if additional_files_dir.exists():
             has_additional_files = True
         else:
