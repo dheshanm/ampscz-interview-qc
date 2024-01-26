@@ -282,8 +282,8 @@ def get_interviews_from_subject(
         subject_interviews, subject_oosop_interviews = get_interviews_from_dir(
             open_interviews_path, subject_id, "open"
         )
-        interviews += subject_interviews
-        out_of_sop_interviews += subject_oosop_interviews
+        interviews.extend(subject_interviews)
+        out_of_sop_interviews.extend(subject_oosop_interviews)
 
     # psychs Interviews
     psychs_interviews_path = interview_path / "psychs"
@@ -292,8 +292,8 @@ def get_interviews_from_subject(
         subject_interviews, subject_oosop_interviews = get_interviews_from_dir(
             psychs_interviews_path, subject_id, "psychs"
         )
-        interviews += subject_interviews
-        out_of_sop_interviews += subject_oosop_interviews
+        interviews.extend(subject_interviews)
+        out_of_sop_interviews.extend(subject_oosop_interviews)
 
     return interviews, out_of_sop_interviews
 
@@ -327,8 +327,8 @@ def get_interviews_from_site(
         subject_interviews, subject_out_of_sop_interviews = get_interviews_from_subject(
             subject_path
         )
-        interviews += subject_interviews
-        out_of_sop_interviews += subject_out_of_sop_interviews
+        interviews.extend(subject_interviews)
+        out_of_sop_interviews.extend(subject_out_of_sop_interviews)
 
     return interviews, out_of_sop_interviews
 
@@ -361,10 +361,10 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
             site_interviews, site_out_of_sop_interviews = get_interviews_from_site(
                 site_path
             )
-            interviews += site_interviews
-            out_of_sop_interviews += site_out_of_sop_interviews
+            interviews.extend(site_interviews)
+            out_of_sop_interviews.extend(site_out_of_sop_interviews)
         except FileNotFoundError:
-            logger.warn(f"Site {site_name} has no raw data")
+            logger.warning(f"Site {site_name} has no raw data")
 
     logger.info(f"Got {len(interviews)} interviews")
     logger.warning(f"Invalid interviews count: {INVALID_INTERVIEW_NAMES_COUNT}")
