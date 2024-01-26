@@ -23,6 +23,7 @@ from typing import List
 
 from interviewqc.helpers import db
 from interviewqc.models.file import File
+from interviewqc.models.moved_file import MovedFile
 from interviewqc.models.site import Site
 from interviewqc.models.subject import Subject
 from interviewqc.models.interview import Interview
@@ -36,9 +37,11 @@ def init_db(config_file: Path):
         Subject.drop_table_query(),
         Site.drop_table_query(),
         File.drop_table_query(),
+        MovedFile.drop_table_query(),
     ]
 
     init_quries = [
+        MovedFile.init_table_query(),
         File.init_table_query(),
         Site.init_table_query(),
         Subject.init_table_query(),

@@ -21,7 +21,7 @@ from interviewqc.helpers.config import config
 _console = Console(color_system="standard")
 
 
-def get_progress_bar() -> Progress:
+def get_progress_bar(transient: bool = False) -> Progress:
     """
     Returns a rich Progress object with standard columns.
 
@@ -35,6 +35,7 @@ def get_progress_bar() -> Progress:
         MofNCompleteColumn(),
         TimeElapsedColumn(),
         TimeRemainingColumn(),
+        transient=transient,
     )
 
 
