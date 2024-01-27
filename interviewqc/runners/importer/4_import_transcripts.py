@@ -40,6 +40,9 @@ logargs = {
 }
 logging.basicConfig(**logargs)
 
+MISALIGNED_TRANSCRIPTS_COUNT = 0
+AMBIGUOUS_TRANSCRIPTS_COUNT = 0
+
 
 def get_interview_name(
     config_file: Path, subject_id: str, interview_type: str, days_since_consent: int
@@ -59,6 +62,8 @@ def get_interview_name(
     Raises:
         ValueError: If there are multiple interviews for the specified subject and day.
     """
+    global AMBIGUOUS_TRANSCRIPTS_COUNT
+
     query = f"""
         SELECT
             interview_name
@@ -76,6 +81,7 @@ def get_interview_name(
         return None
 
     if df.shape[0] > 1:
+        AMBIGUOUS_TRANSCRIPTS_COUNT += 1
         raise ValueError(
             f"Got multiple interviews for subject {subject_id} on day {days_since_consent}"
         )
@@ -122,6 +128,7 @@ def get_transcripts_from_dir(
     Returns:
         List[Transcript]: A list of Transcript objects.
     """
+    global MISALIGNED_TRANSCRIPTS_COUNT
     transcripts: List[Transcript] = []
 
     transcripts_path = interview_type_path / "transcripts"
@@ -147,6 +154,7 @@ def get_transcripts_from_dir(
             continue
 
         if interview_name is None:
+            MISALIGNED_TRANSCRIPTS_COUNT += 1
             logger.warning(
                 f"Could not find interview for subject {subject_id} on day {days_since_consent}"
             )
@@ -303,5 +311,18 @@ if __name__ == "__main__":
 
     logger.info("Getting all interviews")
     import_all_transcripts(config_file=config_file, data_root=data_root)
+
+    logger.info(f"Got {MISALIGNED_TRANSCRIPTS_COUNT} misaligned transcripts")
+    logger.debug(
+        "Misaligned transcripts are transcripts that are not aligned with an interview. \
+        This can happen if the interview is missing from the database, \
+        or the dates between the transcript and interview do not match."
+    )
+
+    logger.info(f"Got {AMBIGUOUS_TRANSCRIPTS_COUNT} ambiguous transcripts")
+    logger.debug(
+        "Ambiguous transcripts are transcripts that are aligned with multiple interviews. \
+                This can happen if the subject has multiple interviews on the same day."
+    )
 
     logger.info("Done")
