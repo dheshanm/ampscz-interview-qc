@@ -49,29 +49,6 @@ INVALID_INTERVIEW_NAMES_COUNT = 0
 ADDITIONAL_FILES_COUNT = 0
 
 
-def compute_days_since_consent(
-    config_file: Path, interview_date: datetime, subject_id: str
-) -> int:
-    """
-    Computes the number of days since the subject consented to the study.
-
-    Args:
-        config_file (Path): The path to the configuration file.
-        interview_date (datetime): The date of the interview.
-        subject_id (str): The ID of the subject.
-
-    Returns:
-        int: The number of days since the subject consented to the study.
-    """
-    consent_date = data.get_consent_data(config_file=config_file, subject_id=subject_id)
-
-    if consent_date is None:
-        raise ValueError(f"Subject {subject_id} has no consent date")
-
-    days_since_consent = (interview_date - consent_date).days + 1
-    return days_since_consent
-
-
 def get_interviews_from_file(
     interviews_file: Path, subject_id: str, interview_type: str
 ) -> Tuple[List[Interview], List[OutOfSopInterview]]:
@@ -110,9 +87,9 @@ def get_interviews_from_file(
     interview_datetime_str = file_name[:14]
     interview_datetime = datetime.strptime(interview_datetime_str, "%Y%m%d%H%M%S")
 
-    days_since_consent = compute_days_since_consent(
+    days_since_consent = data.compute_days_since_consent(
         config_file=config_file,
-        interview_date=interview_datetime,
+        event_date=interview_datetime,
         subject_id=subject_id,
     )
 
@@ -212,9 +189,9 @@ def get_interviews_from_dir(
         if interview_date is None:
             days_sice_consent = None
         else:
-            days_sice_consent = compute_days_since_consent(
+            days_sice_consent = data.compute_days_since_consent(
                 config_file=config_file,
-                interview_date=interview_date,
+                event_date=interview_date,
                 subject_id=subject_id,
             )
 
@@ -296,22 +273,15 @@ def get_interviews_from_subject(
     interviews: List[Interview] = []
     out_of_sop_interviews: List[OutOfSopInterview] = []
 
-    # open Interviews
-    open_interviews_path = interview_path / "open"
+    interview_types = ["open", "psychs"]
 
-    if open_interviews_path.exists():
+    for interview_type in interview_types:
+        interview_type_path = interview_path / interview_type
+        if not interview_type_path.exists():
+            continue
+
         subject_interviews, subject_oosop_interviews = get_interviews_from_dir(
-            open_interviews_path, subject_id, "open"
-        )
-        interviews.extend(subject_interviews)
-        out_of_sop_interviews.extend(subject_oosop_interviews)
-
-    # psychs Interviews
-    psychs_interviews_path = interview_path / "psychs"
-
-    if psychs_interviews_path.exists():
-        subject_interviews, subject_oosop_interviews = get_interviews_from_dir(
-            psychs_interviews_path, subject_id, "psychs"
+            interview_type_path, subject_id, interview_type
         )
         interviews.extend(subject_interviews)
         out_of_sop_interviews.extend(subject_oosop_interviews)

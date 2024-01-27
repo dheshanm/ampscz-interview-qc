@@ -7,7 +7,7 @@ from interviewqc.models.file import File
 
 
 class Transcript:
-    def __init__(self, transcript_path: Path, interview_name: int):
+    def __init__(self, transcript_path: Path, interview_name: str):
         self.transcript_path = transcript_path
         self.interview_name = interview_name
 
