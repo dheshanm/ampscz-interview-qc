@@ -215,14 +215,22 @@ def get_transcripts_from_site(
     if not subjects_path.exists():
         raise FileNotFoundError(f"Subjects path {subjects_path} does not exist")
 
+    subjects_path_list: List[Path] = []
     for subject_path in subjects_path.iterdir():
         if not subject_path.is_dir():
             continue
+        subjects_path_list.append(subject_path)
 
-        subject_transcripts = get_transcripts_from_subject(
-            config_file=config_file, subject_path=subject_path
+    with utils.get_progress_bar() as progress:
+        task = progress.add_task(
+            f"[cyan]Getting transcripts from site {site_path.name}", total=len(subjects_path_list)
         )
-        transcripts.extend(subject_transcripts)
+        for subject_path in subjects_path_list:
+            subject_transcripts = get_transcripts_from_subject(
+                config_file=config_file, subject_path=subject_path
+            )
+            transcripts.extend(subject_transcripts)
+            progress.advance(task)
 
     return transcripts
 
