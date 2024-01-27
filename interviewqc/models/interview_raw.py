@@ -29,7 +29,7 @@ class InterviewRaw:
         file_path (Path): The path to the file associated with the interview.
     """
 
-    def __init__(self, interview_name: Path, file_path: Path):
+    def __init__(self, interview_name: str, file_path: Path):
         """
         Initializes a new instance of the InterviewRaw class.
 

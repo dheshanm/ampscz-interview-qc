@@ -46,6 +46,7 @@ logging.basicConfig(**logargs)
 
 
 INVALID_INTERVIEW_NAMES_COUNT = 0
+ADDITIONAL_FILES_COUNT = 0
 
 
 def compute_days_since_consent(
@@ -177,6 +178,7 @@ def get_interviews_from_dir(
     interviews: List[Interview] = []
     out_of_sop_interviews: List[OutOfSopInterview] = []
     global INVALID_INTERVIEW_NAMES_COUNT
+    global ADDITIONAL_FILES_COUNT
 
     for interview_dir in interviews_dir.iterdir():
         if not interview_dir.is_dir():
@@ -241,6 +243,8 @@ def get_interviews_from_dir(
         additional_files_dir = interview_dir / "Additional interview files"
         if additional_files_dir.exists():
             has_additional_files = True
+            ADDITIONAL_FILES_COUNT += 1
+            logger.warning(f"Interview '{interview_dir}' has additional files.")
         else:
             has_additional_files = False
 
@@ -398,6 +402,7 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
     interviews: List[Interview] = []
     out_of_sop_interviews: List[OutOfSopInterview] = []
     global INVALID_INTERVIEW_NAMES_COUNT
+    global ADDITIONAL_FILES_COUNT
 
     for site_path in sites_path.iterdir():
         if not site_path.is_dir():
@@ -443,6 +448,7 @@ def get_all_interviews(config_file: Path, data_root: Path) -> None:
     logger.info(f"Got {len(duplicate_oosop_interviews)} duplicate interviews")
     logger.info(f"Got {len(out_of_sop_interviews)} out-of-sop interviews")
     logger.info("Note: Duplicates are counted as Out-Of-SOP")
+    logger.warning(f"Additional files count: {ADDITIONAL_FILES_COUNT}")
 
     for interview in duplicate_oosop_interviews:
         query = interview.to_sql()
