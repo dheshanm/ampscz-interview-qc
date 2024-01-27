@@ -124,9 +124,13 @@ def get_transcripts_from_dir(
     """
     transcripts: List[Transcript] = []
 
-    transcripts_path = interview_type_path.glob("*.txt")
+    transcripts_path = interview_type_path / "transcripts"
+    if not transcripts_path.exists():
+        return transcripts
 
-    for transcript_path in transcripts_path:
+    transcript_files_path = transcripts_path.glob("*.txt")
+
+    for transcript_path in transcript_files_path:
         days_since_consent = get_transcript_days_since_consent(transcript_path)
         try:
             interview_name = get_interview_name(
@@ -223,7 +227,8 @@ def get_transcripts_from_site(
 
     with utils.get_progress_bar() as progress:
         task = progress.add_task(
-            f"[cyan]Getting transcripts from site {site_path.name}", total=len(subjects_path_list)
+            f"[cyan]Getting transcripts from site {site_path.name}",
+            total=len(subjects_path_list),
         )
         for subject_path in subjects_path_list:
             subject_transcripts = get_transcripts_from_subject(
@@ -262,7 +267,9 @@ def import_all_transcripts(config_file: Path, data_root: Path) -> None:
                 config_file=config_file, site_path=site_path
             )
             transcripts.extend(site_transcripts)
-            logger.info(f"Got {len(site_transcripts)} transcripts from site {site_name}")
+            logger.info(
+                f"Got {len(site_transcripts)} transcripts from site {site_name}"
+            )
 
         except FileNotFoundError:
             logger.warning(f"Site {site_name} has no raw data")
