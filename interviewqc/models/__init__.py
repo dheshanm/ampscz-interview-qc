@@ -30,6 +30,7 @@ from interviewqc.models.interview import Interview
 from interviewqc.models.interview_raw import InterviewRaw
 from interviewqc.models.oosop_interviews import OutOfSopInterview
 from interviewqc.models.transcripts import Transcript
+from interviewqc.models.transcription_status import TranscriptionStatus
 
 
 def init_db(config_file: Path):
@@ -42,6 +43,8 @@ def init_db(config_file: Path):
         Site.drop_table_query(),
         File.drop_table_query(),
         MovedFile.drop_table_query(),
+
+        TranscriptionStatus.drop_table_query(),
     ]
 
     init_quries = [
@@ -53,6 +56,8 @@ def init_db(config_file: Path):
         OutOfSopInterview.init_table_query(),
         InterviewRaw.init_table_query(),
         Transcript.init_table_query(),
+
+        TranscriptionStatus.init_table_query(),
     ]
 
     sql_queries = drop_queries + init_quries
