@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List
 
 
-def get_repo_root() -> str:
+def get_repo_root() -> Path:
     """
     Returns the root directory of the current Git repository.
 
@@ -12,7 +12,7 @@ def get_repo_root() -> str:
     """
     repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
     repo_root = repo_root.decode("utf-8").strip()
-    return repo_root
+    return Path(repo_root)
 
 
 def remove_files(files: List[Path], base_dir: Path, logger: Logger) -> None:
