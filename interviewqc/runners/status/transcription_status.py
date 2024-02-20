@@ -193,6 +193,7 @@ def get_pipeline_status_df(
 
     studies = protected_dir.iterdir()
     studies = [s.name for s in studies if s.is_dir() and s.name.startswith(network)]
+    studies = sorted(studies)
 
     def add_data_to_df(
         subject: str,
