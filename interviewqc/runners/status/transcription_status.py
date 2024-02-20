@@ -398,7 +398,8 @@ def add_qc_to_df(
 
 def add_qc_status(
     status_df: pd.DataFrame,
-    data_root: Path
+    data_root: Path,
+    network: str
 ) -> pd.DataFrame:
     """
     Adds the QC status to the DataFrame.
@@ -409,7 +410,7 @@ def add_qc_status(
     general_dir = data_root / "GENERAL"
 
     studies = general_dir.iterdir()
-    studies = [s.name for s in studies if s.is_dir() and s.name.startswith("Prescient")]
+    studies = [s.name for s in studies if s.is_dir() and s.name.startswith(network)]
 
     for study in studies:
         study_dir = general_dir / study
