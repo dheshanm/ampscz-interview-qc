@@ -567,7 +567,8 @@ if __name__ == "__main__":
 
     status_df = add_qc_status(
         status_df=status_df,
-        data_root=data_root
+        data_root=data_root,
+        network=network
     )
 
     status_df = finalize_df(status_df)
