@@ -1,15 +1,17 @@
 #!/usr/bin/env python
-
+"""
+Tracks the status of the transcription files and adds the status to the database.
+"""
 import sys
 from pathlib import Path
 
 file = Path(__file__).resolve()
 parent = file.parent
-root = None
+ROOT = None
 for parent in file.parents:
     if parent.name == "ampscz-interview-qc":
-        root = parent
-sys.path.append(str(root))
+        ROOT = parent
+sys.path.append(str(ROOT))
 
 # remove current directory from path
 try:
@@ -41,9 +43,7 @@ logargs = {
 logging.basicConfig(**logargs)
 
 
-def fix_day_to_session_map(
-    day_to_session_map: Dict[int, int]
-) -> Dict[int, int]:
+def fix_day_to_session_map(day_to_session_map: Dict[int, int]) -> Dict[int, int]:
     """
     Sometimes the pipeline misses the session and assigns the same session number
     in that case reassign the session number.
@@ -67,7 +67,7 @@ def fix_day_to_session_map(
         session_numbers.add(session)
     else:
         return day_to_session_map
-    
+
     # if there are duplicate session numbers, reassign the session numbers
     # based on the day number
     new_day_to_session_map = {}
@@ -78,9 +78,8 @@ def fix_day_to_session_map(
 
     return new_day_to_session_map
 
-def get_day_and_session_from_filename(
-        filename: str
-) -> Tuple[int, int]:
+
+def get_day_and_session_from_filename(filename: str) -> Tuple[int, int]:
     """
     Get the day and session number from the filename in the format:
         site_subject_interviewAudioTranscript_<type>_day0001_session001.wav
@@ -121,9 +120,7 @@ def get_day_session_map(audio_dir: Path) -> Dict[int, int]:
     return fix_day_to_session_map(day_to_session_map)
 
 
-def explore_subject_status(
-    subject_interview_dir: Path
-) -> Dict[int, Tuple[int, str]]:
+def explore_subject_status(subject_interview_dir: Path) -> Dict[int, Tuple[int, str]]:
     """
     Returns a Map of Day to Session number, Status
 
@@ -144,27 +141,28 @@ def explore_subject_status(
     }
 
     day_to_session_maps: Dict[str, Dict[int, int]] = {}
-    for status, dir in status_dir_map.items():
-        if not dir.exists():
+    for status, status_dir in status_dir_map.items():
+        if not status_dir.exists():
             continue
 
-        day_to_session_map = get_day_session_map(dir)
+        day_to_session_map = get_day_session_map(status_dir)
         day_to_session_maps[status] = day_to_session_map
 
         for day, session in day_to_session_map.items():
             if session in session_status_map:
                 logger.warning(
-                    f"{subject_interview_dir}: Session {session} already exists in the map as {session_status_map[session]}"
+                    f"{subject_interview_dir}: Session {session} already exists in the \
+map as {session_status_map[session]}"
                 )
             session_status_map[session] = status
 
         for day, session in day_to_session_map.items():
             if day in day_status_map:
                 logger.warning(
-                    f"{subject_interview_dir}: Day {day} already exists in the map as {day_status_map[day]}"
+                    f"{subject_interview_dir}: Day {day} already exists in the \
+map as {day_status_map[day]}"
                 )
             day_status_map[day] = status
-
 
     day_to_session_status_map: Dict[int, Tuple[int, str]] = {}
     for day, status in day_status_map.items():
@@ -174,10 +172,7 @@ def explore_subject_status(
     return day_to_session_status_map
 
 
-def get_pipeline_status_df(
-    data_root: Path,
-    network: str
-) -> pd.DataFrame:
+def get_pipeline_status_df(data_root: Path, network: str) -> pd.DataFrame:
     """
     Get the pipeline status of the interviews.
 
@@ -200,7 +195,7 @@ def get_pipeline_status_df(
         study: str,
         interview_type: str,
         status_map: Dict[int, Tuple[int, str]],
-        df: pd.DataFrame
+        df: pd.DataFrame,
     ) -> pd.DataFrame:
         data = []
         for day, session_status in status_map.items():
@@ -209,18 +204,20 @@ def get_pipeline_status_df(
                 subject=subject,
                 data_type="interview",
                 category=interview_type,
-                time_range=f"day{day:04d}"
+                time_range=f"day{day:04d}",
             )
             session, status = session_status
-            data.append({
-                "subject_id": subject,
-                "study_id": study,
-                "interview_type": interview_type,
-                "interview_name": interview_name,
-                "day": day,
-                "session": session,
-                "pipeline_status": status
-            })
+            data.append(
+                {
+                    "subject_id": subject,
+                    "study_id": study,
+                    "interview_type": interview_type,
+                    "interview_name": interview_name,
+                    "day": day,
+                    "session": session,
+                    "pipeline_status": status,
+                }
+            )
         df = pd.concat([df, pd.DataFrame(data)])
 
         return df
@@ -249,17 +246,14 @@ def get_pipeline_status_df(
                     study=study,
                     interview_type=interview_type,
                     status_map=status_dict,
-                    df=df
+                    df=df,
                 )
 
     return df
 
+
 def check_transcript_status(
-    subject: str,
-    study: str,
-    interview_type: str,
-    day: int,
-    data_dir: Path
+    subject: str, study: str, interview_type: str, day: int, data_dir: Path
 ) -> str:
     """
     Get the status of the transcript file.
@@ -275,7 +269,16 @@ def check_transcript_status(
         str: The status of the transcript file.
             Can be "exists", "prescreening", or "missing".
     """
-    transcript_dir = data_dir / "PROTECTED" / study / "processed" / subject / "interviews" / interview_type / "transcripts"
+    transcript_dir = (
+        data_dir
+        / "PROTECTED"
+        / study
+        / "processed"
+        / subject
+        / "interviews"
+        / interview_type
+        / "transcripts"
+    )
 
     # Transcript name template:
     # study_subject_interviewAudioTranscript_<interview_type>_day0001_session001.txt
@@ -295,9 +298,9 @@ def check_transcript_status(
 
     return "missing"
 
+
 def add_transcript_files_status(
-    status_df: pd.DataFrame,
-    data_root: Path
+    status_df: pd.DataFrame, data_root: Path
 ) -> pd.DataFrame:
     """
     Adds the transcript status to the DataFrame.
@@ -318,18 +321,19 @@ def add_transcript_files_status(
             subject=subject,
             interview_type=interview_type,
             day=day,
-            data_dir=data_root
+            data_dir=data_root,
         )
         status_df.at[idx, "transcript_status"] = transcript_status
 
     return status_df
+
 
 def add_qc_to_df(
     study: str,
     subject: str,
     interview_type: str,
     qc_df: pd.DataFrame,
-    status_df: pd.DataFrame
+    status_df: pd.DataFrame,
 ) -> pd.DataFrame:
     """
     Adds the QC status to the DataFrame.
@@ -362,15 +366,15 @@ def add_qc_to_df(
             qc_status = "fail"
 
         df_idxs = status_df[
-            (status_df["study_id"] == study) &
-            (status_df["subject_id"] == subject) &
-            (status_df["interview_type"] == interview_type) &
-            (status_df["day"] == day)
+            (status_df["study_id"] == study)
+            & (status_df["subject_id"] == subject)
+            & (status_df["interview_type"] == interview_type)
+            & (status_df["day"] == day)
         ].index
 
         for df_idx in df_idxs:
             status_df.at[df_idx, "interview_length_minutes"] = length_mins
-            status_df.at[df_idx, "qc_status"] = qc_status   
+            status_df.at[df_idx, "qc_status"] = qc_status
 
         if len(df_idxs) == 0:
             interview_name = dpdash.get_dpdash_name(
@@ -378,29 +382,30 @@ def add_qc_to_df(
                 subject=subject,
                 data_type="interview",
                 category=interview_type,
-                time_range=f"day{day:04d}"
+                time_range=f"day{day:04d}",
             )
             logger.warning(
                 f"QC data found for {interview_name} but no transcription info found."
             )
             data = []
-            data.append({
-                "subject_id": subject,
-                "study_id": study,
-                "interview_type": interview_type,
-                "interview_name": interview_name,
-                "day": day,
-                "interview_length_minutes": length_mins,
-                "qc_status": qc_status
-            })
+            data.append(
+                {
+                    "subject_id": subject,
+                    "study_id": study,
+                    "interview_type": interview_type,
+                    "interview_name": interview_name,
+                    "day": day,
+                    "interview_length_minutes": length_mins,
+                    "qc_status": qc_status,
+                }
+            )
             status_df = pd.concat([status_df, pd.DataFrame(data)])
 
     return status_df
 
+
 def add_qc_status(
-    status_df: pd.DataFrame,
-    data_root: Path,
-    network: str
+    status_df: pd.DataFrame, data_root: Path, network: str
 ) -> pd.DataFrame:
     """
     Adds the QC status to the DataFrame.
@@ -445,15 +450,13 @@ def add_qc_status(
                     subject=subject,
                     interview_type=interview_type,
                     qc_df=qc_df,
-                    status_df=status_df
+                    status_df=status_df,
                 )
 
     return status_df
 
 
-def finalize_df(
-    status_df: pd.DataFrame
-) -> pd.DataFrame:
+def finalize_df(status_df: pd.DataFrame) -> pd.DataFrame:
     """
     Fills in missing values in the DataFrame with meaningful defaults.
 
@@ -481,11 +484,7 @@ def finalize_df(
     return status_df
 
 
-
-def status_df_to_db(
-    config_file: Path,
-    status_df: pd.DataFrame
-) -> None:
+def status_df_to_db(config_file: Path, status_df: pd.DataFrame) -> None:
     """
     Inserts the status DataFrame into the database.
 
@@ -500,7 +499,7 @@ def status_df_to_db(
     """
     sql_queries: List[str] = [
         TranscriptionStatus.drop_table_query(),
-        TranscriptionStatus.init_table_query()
+        TranscriptionStatus.init_table_query(),
     ]
     logger.warning(
         "This will delete all existing data in the 'transcription_status' table!"
@@ -527,13 +526,16 @@ def status_df_to_db(
             pipeline_status=row["pipeline_status"],
             transcript_file_status=row["transcript_status"],
             qc_status=row["qc_status"],
-            interview_length_minutes=interview_length_minutes
+            interview_length_minutes=interview_length_minutes,
         )
 
         sql_queries.append(transcription_status.to_sql())
 
     db.execute_queries(
-        config_file=config_file, queries=sql_queries, show_commands=False, show_progress=True
+        config_file=config_file,
+        queries=sql_queries,
+        show_commands=False,
+        show_progress=True,
     )
 
 
@@ -555,21 +557,11 @@ if __name__ == "__main__":
     logger.info(f"Data root: {data_root}")
     logger.info(f"Network: {network}")
 
-    status_df = get_pipeline_status_df(
-        data_root=data_root,
-        network=network
-    )
+    status_df = get_pipeline_status_df(data_root=data_root, network=network)
 
-    status_df = add_transcript_files_status(
-        status_df=status_df,
-        data_root=data_root
-    )
+    status_df = add_transcript_files_status(status_df=status_df, data_root=data_root)
 
-    status_df = add_qc_status(
-        status_df=status_df,
-        data_root=data_root,
-        network=network
-    )
+    status_df = add_qc_status(status_df=status_df, data_root=data_root, network=network)
 
     status_df = finalize_df(status_df)
     export_path = repo_root / "data" / "transcription_status.csv"
@@ -578,9 +570,6 @@ if __name__ == "__main__":
 
     console.log(f"Found {len(status_df)} transcript statuses.")
 
-    status_df_to_db(
-        config_file=config_file,
-        status_df=status_df
-    )
+    status_df_to_db(config_file=config_file, status_df=status_df)
 
     console.log("[bold green]Done!")
