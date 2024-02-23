@@ -1,0 +1,2 @@
+# Prescient Data Aggregation Server
+0 */12 * * * bash /home/dm1447/dev/ampscz-interview-qc/crons/prescient-transcript-tracker.sh
