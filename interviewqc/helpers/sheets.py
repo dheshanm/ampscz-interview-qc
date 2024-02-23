@@ -180,6 +180,20 @@ def api_rate_limit(func):
     return wrapper
 
 
+def wipe_sheet(worksheet: gspread.Worksheet) -> None:
+    """
+    Wipe the contents of a worksheet.
+
+    Args:
+        worksheet (gspread.Worksheet): The worksheet to wipe.
+    """
+
+    def _wipe_sheet():
+        worksheet.clear()
+
+    api_rate_limit(_wipe_sheet)()
+
+
 def df_to_sheet(df: pd.DataFrame, worksheet: gspread.Worksheet) -> None:
     """
     Update a worksheet with the contents of a DataFrame.
@@ -188,8 +202,17 @@ def df_to_sheet(df: pd.DataFrame, worksheet: gspread.Worksheet) -> None:
         df (pd.DataFrame): The DataFrame to update the worksheet with.
         worksheet (gspread.Worksheet): The worksheet to update.
     """
+    wipe_sheet(worksheet)
 
-    def _df_to_sheet():
-        worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+    cols = df.columns.tolist()
 
-    api_rate_limit(_df_to_sheet)()
+    cell_list = []
+
+    for i, col in enumerate(cols):
+        cell_list.append(gspread.Cell(1, i + 1, col))
+
+    for i, row in df.iterrows():
+        for j, val in enumerate(row):
+            cell_list.append(gspread.Cell(int(i) + 2, int(j) + 1, str(val)))  # type: ignore
+
+    worksheet.update_cells(cell_list)
