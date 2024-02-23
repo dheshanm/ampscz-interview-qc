@@ -22,11 +22,12 @@ except ValueError:
 
 import logging
 from typing import List, Dict, Set, Tuple
+from datetime import datetime
 
 from rich.logging import RichHandler
 import pandas as pd
 
-from interviewqc.helpers import cli, utils, db, dpdash
+from interviewqc.helpers import cli, utils, db, dpdash, sheets
 from interviewqc.models.transcription_status import TranscriptionStatus
 
 MODULE_NAME = "interviewqc.runners.status.transcription_status"
@@ -481,6 +482,13 @@ def finalize_df(status_df: pd.DataFrame) -> pd.DataFrame:
     status_df["transcript_status"].fillna("missing", inplace=True)
     status_df["pipeline_status"].fillna("unknown", inplace=True)
 
+    # Sort the DataFrame by 'subject_id', 'day'
+    logger.info("Sorting the DataFrame by 'subject_id', 'day'")
+    status_df = status_df.sort_values(by=["subject_id", "day"])
+
+    # reset the index
+    status_df.reset_index(drop=True, inplace=True)
+
     return status_df
 
 
@@ -539,6 +547,43 @@ def status_df_to_db(config_file: Path, status_df: pd.DataFrame) -> None:
     )
 
 
+def status_df_to_sheets(
+    config_file: Path, status_df: pd.DataFrame
+) -> None:
+    """
+    Inserts the status DataFrame into the Google Sheet.
+
+    Args:
+        config_file (Path): The path to the configuration file.
+        status_df (pd.DataFrame): The DataFrame containing the status of the interviews.
+
+    Returns:
+        None
+    """
+    sheets_params = utils.config(path=config_file, section="sheets")
+    datailed_worksheet_name = sheets_params["datailed_worksheet_name"]
+
+    worksheet = sheets.get_worksheet(config_file=config_file, sheet_name=datailed_worksheet_name)
+    sheets.df_to_sheet(
+        worksheet=worksheet, df=status_df
+    )
+
+    current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    sheets.update_cell(
+        worksheet=worksheet,
+        row_idx=1,
+        col_idx=12,
+        value="Last Updated",
+    )
+
+    sheets.update_cell(
+        worksheet=worksheet,
+        row_idx=1,
+        col_idx=13,
+        value=current_timestamp,
+    )
+
+
 if __name__ == "__main__":
     console.rule(f"[bold red]{MODULE_NAME}")
 
@@ -567,8 +612,10 @@ if __name__ == "__main__":
     export_path = repo_root / "data" / "transcription_status.csv"
     logger.info(f"Exporting to {export_path}")
     status_df.to_csv(export_path, index=False)
+    logger.info(f"Found {len(status_df)} transcript statuses.")
 
-    console.log(f"Found {len(status_df)} transcript statuses.")
+    logger.info("Pushing to Google Sheets...")
+    status_df_to_sheets(config_file=config_file, status_df=status_df)
 
     status_df_to_db(config_file=config_file, status_df=status_df)
 
