@@ -1,3 +1,7 @@
+"""
+Database helper functions for working with PostgreSQL databases.
+"""
+
 from pathlib import Path
 from typing import Optional
 import json
@@ -65,7 +69,7 @@ def sanitize_json(json_dict: dict) -> str:
         str: The sanitized JSON object.
     """
     for key, value in json_dict.items():
-        if type(value) is str:
+        if isinstance(value, str):
             json_dict[key] = santize_string(value)
     return json.dumps(json_dict)
 
@@ -81,9 +85,11 @@ def execute_queries(
     Executes a list of SQL queries on a PostgreSQL database.
 
     Args:
-        config_file_path (str): The path to the configuration file containing the connection parameters.
+        config_file_path (str): The path to the configuration file containing
+            the connection parameters.
         queries (list): A list of SQL queries to execute.
-        show_commands (bool, optional): Whether to display the executed SQL queries. Defaults to True.
+        show_commands (bool, optional): Whether to display the executed SQL queries.
+            Defaults to True.
         show_progress (bool, optional): Whether to display a progress bar. Defaults to False.
         silent (bool, optional): Whether to suppress output. Defaults to False.
 
@@ -179,10 +185,12 @@ def get_db_connection(config_file: Path) -> sqlalchemy.engine.base.Engine:
 
 def execute_sql(config_file: Path, query: str) -> pd.DataFrame:
     """
-    Executes a SQL query on a PostgreSQL database and returns the result as a pandas DataFrame.
+    Executes a SQL query on a PostgreSQL database and
+    returns the result as a pandas DataFrame.
 
     Args:
-        config_file_path (str): The path to the configuration file containing the PostgreSQL database credentials.
+        config_file_path (str): The path to the configuration file containing the
+            PostgreSQL database credentials.
         query (str): The SQL query to execute.
 
     Returns:

@@ -283,7 +283,8 @@ def check_transcript_status(
 
     # Transcript name template:
     # study_subject_interviewAudioTranscript_<interview_type>_day0001_session001.txt
-    transcript_name = f"{study}_{subject}_interviewAudioTranscript_{interview_type}_day{day:04d}_session*.txt"
+    transcript_name = f"{study}_{subject}_interviewAudioTranscript_{interview_type}\
+_day{day:04d}_session*.txt"
     transcript_files = transcript_dir.glob(transcript_name)
     transcript_files = list(transcript_files)
 
@@ -547,9 +548,7 @@ def status_df_to_db(config_file: Path, status_df: pd.DataFrame) -> None:
     )
 
 
-def status_df_to_sheets(
-    config_file: Path, status_df: pd.DataFrame
-) -> None:
+def status_df_to_sheets(config_file: Path, status_df: pd.DataFrame) -> None:
     """
     Inserts the status DataFrame into the Google Sheet.
 
@@ -563,10 +562,10 @@ def status_df_to_sheets(
     sheets_params = utils.config(path=config_file, section="sheets")
     datailed_worksheet_name = sheets_params["datailed_worksheet_name"]
 
-    worksheet = sheets.get_worksheet(config_file=config_file, sheet_name=datailed_worksheet_name)
-    sheets.df_to_sheet(
-        worksheet=worksheet, df=status_df
+    worksheet = sheets.get_worksheet(
+        config_file=config_file, sheet_name=datailed_worksheet_name
     )
+    sheets.df_to_sheet(worksheet=worksheet, df=status_df)
 
     current_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     sheets.update_cell(

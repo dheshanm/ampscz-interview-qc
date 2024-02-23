@@ -1,3 +1,7 @@
+"""
+Helper functions for the tracker
+"""
+
 import logging
 from datetime import datetime
 from pathlib import Path

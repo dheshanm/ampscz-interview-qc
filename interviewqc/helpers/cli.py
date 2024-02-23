@@ -1,3 +1,7 @@
+"""
+Provides helper functions for command line operations.
+"""
+
 import subprocess
 from logging import Logger
 from pathlib import Path

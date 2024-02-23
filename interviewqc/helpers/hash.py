@@ -1,3 +1,7 @@
+"""
+Helper functions for computing hash digests of files.
+"""
+
 import hashlib
 from pathlib import Path
 
@@ -15,6 +19,6 @@ def compute_hash(file_path: Path, hash_type: str = "md5") -> str:
     """
     with open(file_path, "rb") as file:
         file_hash = hashlib.file_digest(file, hash_type)
-        md5str = file_hash.hexdigest()
+        hash_str = file_hash.hexdigest()
 
-    return md5str
+    return hash_str
